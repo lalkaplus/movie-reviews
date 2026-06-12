@@ -309,6 +309,7 @@
         .platform-switch { background: #e60012; color: white; }
         .platform-mobile { background: #8b5cf6; color: white; }
     </style>
+<base target="_blank">
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
     <!-- Spinning 67 -->
@@ -368,6 +369,26 @@
                 </div>
             </div>
 
+
+            <!-- Rating Filter -->
+            <div class="mb-6">
+                <p class="text-gray-400 text-sm mb-3">Фильтр по оценке:</p>
+                <div class="flex flex-wrap gap-2 items-center" id="ratingFilters">
+                    <button class="filter-btn active" onclick="toggleRating('all', this)">Все</button>
+                    <button class="filter-btn" onclick="toggleRating(10, this)">10 ★</button>
+                    <button class="filter-btn" onclick="toggleRating(9, this)">9+</button>
+                    <button class="filter-btn" onclick="toggleRating(8, this)">8+</button>
+                    <button class="filter-btn" onclick="toggleRating(7, this)">7+</button>
+                    <button class="filter-btn" onclick="toggleRating(6, this)">6+</button>
+                    <button class="filter-btn" onclick="toggleRating(5, this)">5+</button>
+                    <button class="filter-btn" onclick="toggleRating(4, this)">4+</button>
+                    <button class="filter-btn" onclick="toggleRating(3, this)">3+</button>
+                    <button class="filter-btn" onclick="toggleRating(2, this)">2+</button>
+                    <button class="filter-btn" onclick="toggleRating(1, this)">1+</button>
+                    <button class="filter-btn" onclick="toggleRating(0, this)">0</button>
+                </div>
+            </div>
+
             <button onclick="openAddModal('movie')" class="bg-indigo-600 hover:bg-indigo-700 px-6 py-2.5 rounded-xl font-medium transition flex items-center gap-2 mb-6">
                 <span>+</span> Добавить фильм
             </button>
@@ -416,6 +437,26 @@
                     <button class="filter-btn" onclick="toggleGenreGame('Головоломка', this)">Головоломка</button>
                     <button class="filter-btn" onclick="toggleGenreGame('Симулятор', this)">Симулятор</button>
                     <button class="filter-btn" onclick="toggleGenreGame('Рофл', this)">😂 Рофл</button>
+                </div>
+            </div>
+
+
+            <!-- Rating Filter Games -->
+            <div class="mb-6">
+                <p class="text-gray-400 text-sm mb-3">Фильтр по оценке:</p>
+                <div class="flex flex-wrap gap-2 items-center" id="ratingFiltersGames">
+                    <button class="filter-btn active" onclick="toggleRatingGame('all', this)">Все</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(10, this)">10 ★</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(9, this)">9+</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(8, this)">8+</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(7, this)">7+</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(6, this)">6+</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(5, this)">5+</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(4, this)">4+</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(3, this)">3+</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(2, this)">2+</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(1, this)">1+</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(0, this)">0</button>
                 </div>
             </div>
 
@@ -700,6 +741,7 @@
         let displayedMovies = 0, displayedGames = 0;
         const PAGE_SIZE = 9;
         let selectedGenres = ['all'], selectedGameGenres = ['all'];
+        let selectedRating = 'all', selectedGameRating = 'all';
         let selectedGenresForm = [], selectedGameGenresForm = [];
         let draftData = null;
         let currentMovieRating = 0, currentGameRating = 0;
@@ -755,11 +797,20 @@
         }
 
         function getFilteredMovies() {
-            if (selectedGenres.includes('all')) return movies;
-            return movies.filter(m => {
-                const mg = m.genres || (m.genre ? [m.genre] : []);
-                return selectedGenres.some(g => mg.includes(g));
-            });
+            let result = movies;
+            // Genre filter
+            if (!selectedGenres.includes('all')) {
+                result = result.filter(m => {
+                    const mg = m.genres || (m.genre ? [m.genre] : []);
+                    return selectedGenres.some(g => mg.includes(g));
+                });
+            }
+            // Rating filter
+            if (selectedRating !== 'all') {
+                const minRating = parseInt(selectedRating);
+                result = result.filter(m => (m.rating || 0) >= minRating);
+            }
+            return result;
         }
 
         function renderMovies() {
@@ -856,11 +907,20 @@
         }
 
         function getFilteredGames() {
-            if (selectedGameGenres.includes('all')) return games;
-            return games.filter(g => {
-                const gg = g.genres || [];
-                return selectedGameGenres.some(genre => gg.includes(genre));
-            });
+            let result = games;
+            // Genre filter
+            if (!selectedGameGenres.includes('all')) {
+                result = result.filter(g => {
+                    const gg = g.genres || [];
+                    return selectedGameGenres.some(genre => gg.includes(genre));
+                });
+            }
+            // Rating filter
+            if (selectedGameRating !== 'all') {
+                const minRating = parseInt(selectedGameRating);
+                result = result.filter(g => (g.rating || 0) >= minRating);
+            }
+            return result;
         }
 
         function renderGames() {
@@ -928,7 +988,37 @@
             renderGames();
         }
 
-        // ==================== ADD MODALS ====================
+        
+        // ==================== RATING FILTERS ====================
+        window.toggleRating = function(rating, btn) {
+            if (rating === 'all') {
+                selectedRating = 'all';
+                document.querySelectorAll('#ratingFilters .filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            } else {
+                selectedRating = rating;
+                document.querySelectorAll('#ratingFilters .filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+            displayedMovies = 0;
+            renderMovies();
+        }
+
+        window.toggleRatingGame = function(rating, btn) {
+            if (rating === 'all') {
+                selectedGameRating = 'all';
+                document.querySelectorAll('#ratingFiltersGames .filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            } else {
+                selectedGameRating = rating;
+                document.querySelectorAll('#ratingFiltersGames .filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+            displayedGames = 0;
+            renderGames();
+        }
+
+// ==================== ADD MODALS ====================
         window.openAddModal = function(type) {
             document.getElementById('add' + (type === 'movie' ? 'Movie' : 'Game') + 'Modal').classList.add('active');
             document.body.style.overflow = 'hidden';
