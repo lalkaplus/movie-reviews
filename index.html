@@ -279,45 +279,6 @@
         }
         .section { display: none; }
         .section.active { display: block; }
-        
-        /* Games styles */
-        .game-canvas {
-            background: #1f2937;
-            border-radius: 12px;
-            border: 2px solid #374151;
-        }
-        .game-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-            padding: 20px;
-        }
-        .game-controls {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .game-btn {
-            background: #6366f1;
-            color: white;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        .game-btn:hover {
-            background: #4f46e5;
-            transform: translateY(-2px);
-        }
-        .score-display {
-            font-size: 24px;
-            font-weight: bold;
-            color: #fbbf24;
-        }
         .rating-10 {
             display: flex;
             gap: 4px;
@@ -348,7 +309,6 @@
         .platform-switch { background: #e60012; color: white; }
         .platform-mobile { background: #8b5cf6; color: white; }
     </style>
-<base target="_blank">
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
     <!-- Spinning 67 -->
@@ -370,7 +330,6 @@
             <nav class="flex gap-2 flex-wrap">
                 <button class="nav-tab active" onclick="switchTab('movies')">🎬 Фильмы</button>
                 <button class="nav-tab" onclick="switchTab('games')">🎮 Игры</button>
-                <button class="nav-tab" onclick="switchTab('play')">🕹️ Поиграть</button>
             </nav>
         </div>
     </header>
@@ -477,67 +436,6 @@
         </main>
     </section>
 
-    <!-- PLAY GAMES SECTION -->
-    <section id="playSection" class="section">
-        <main class="max-w-6xl mx-auto px-4 py-8">
-            <h2 class="text-3xl font-bold mb-8 text-center">🕹️ Встроенные игры</h2>
-            
-            <!-- Snake -->
-            <div class="bg-gray-800 rounded-2xl p-6 mb-8 border border-gray-700">
-                <h3 class="text-xl font-bold mb-4 text-emerald-400">🐍 Змейка</h3>
-                <div class="game-container">
-                    <canvas id="snakeCanvas" class="game-canvas" width="400" height="400"></canvas>
-                    <div class="game-controls">
-                        <button class="game-btn" onclick="startSnake()">▶️ Старт</button>
-                        <button class="game-btn" onclick="pauseSnake()">⏸️ Пауза</button>
-                        <span class="score-display">Очки: <span id="snakeScore">0</span></span>
-                    </div>
-                    <p class="text-gray-400 text-sm">Управление: стрелки на клавиатуре</p>
-                </div>
-            </div>
-
-            <!-- Tetris -->
-            <div class="bg-gray-800 rounded-2xl p-6 mb-8 border border-gray-700">
-                <h3 class="text-xl font-bold mb-4 text-purple-400">🧱 Тетрис</h3>
-                <div class="game-container">
-                    <canvas id="tetrisCanvas" class="game-canvas" width="300" height="600"></canvas>
-                    <div class="game-controls">
-                        <button class="game-btn" onclick="startTetris()">▶️ Старт</button>
-                        <button class="game-btn" onclick="pauseTetris()">⏸️ Пауза</button>
-                        <span class="score-display">Очки: <span id="tetrisScore">0</span></span>
-                    </div>
-                    <p class="text-gray-400 text-sm">Управление: ← → движение, ↑ поворот, ↓ ускорение</p>
-                </div>
-            </div>
-
-            <!-- Sudoku -->
-            <div class="bg-gray-800 rounded-2xl p-6 mb-8 border border-gray-700">
-                <h3 class="text-xl font-bold mb-4 text-blue-400">🔢 Судоку</h3>
-                <div class="game-container">
-                    <div id="sudokuBoard" class="grid grid-cols-9 gap-0 bg-gray-700 p-2 rounded-xl" style="width: fit-content;"></div>
-                    <div class="game-controls">
-                        <button class="game-btn" onclick="generateSudoku()">🔄 Новая игра</button>
-                        <button class="game-btn" onclick="checkSudoku()">✅ Проверить</button>
-                        <button class="game-btn" onclick="solveSudoku()">💡 Подсказка</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Minesweeper -->
-            <div class="bg-gray-800 rounded-2xl p-6 mb-8 border border-gray-700">
-                <h3 class="text-xl font-bold mb-4 text-red-400">💣 Сапёр</h3>
-                <div class="game-container">
-                    <div id="minesweeperBoard" class="grid gap-1 bg-gray-700 p-2 rounded-xl" style="width: fit-content;"></div>
-                    <div class="game-controls">
-                        <button class="game-btn" onclick="startMinesweeper()">🔄 Новая игра</button>
-                        <span class="score-display">💣 <span id="mineCount">10</span></span>
-                    </div>
-                    <p class="text-gray-400 text-sm">ЛКМ — открыть, ПКМ — флаг</p>
-                </div>
-            </div>
-        </main>
-    </section>
-
     <!-- Add Movie Modal -->
     <div id="addMovieModal" class="modal fixed inset-0 bg-black/80 backdrop-blur-sm z-50 items-center justify-center p-4">
         <div class="bg-gray-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-gray-700">
@@ -589,7 +487,17 @@
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Оценка (0-10)</label>
                     <div class="rating-10" id="starInputMovie">
-                        ${Array.from({length: 11}, (_, i) => `<button type="button" onclick="setRatingMovie(${i})" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="${i}">${i === 0 ? '☆' : '★'}</button>`).join('')}
+                        <button type="button" onclick="setRatingMovie(0)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="0">☆</button>
+                        <button type="button" onclick="setRatingMovie(1)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="1">★</button>
+                        <button type="button" onclick="setRatingMovie(2)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="2">★</button>
+                        <button type="button" onclick="setRatingMovie(3)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="3">★</button>
+                        <button type="button" onclick="setRatingMovie(4)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="4">★</button>
+                        <button type="button" onclick="setRatingMovie(5)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="5">★</button>
+                        <button type="button" onclick="setRatingMovie(6)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="6">★</button>
+                        <button type="button" onclick="setRatingMovie(7)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="7">★</button>
+                        <button type="button" onclick="setRatingMovie(8)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="8">★</button>
+                        <button type="button" onclick="setRatingMovie(9)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="9">★</button>
+                        <button type="button" onclick="setRatingMovie(10)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="10">★</button>
                     </div>
                     <input type="hidden" id="movieRating" value="0">
                     <p class="text-yellow-400 font-bold mt-2" id="movieRatingDisplay">0 / 10</p>
@@ -678,7 +586,17 @@
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Оценка (0-10)</label>
                     <div class="rating-10" id="starInputGame">
-                        ${Array.from({length: 11}, (_, i) => `<button type="button" onclick="setRatingGame(${i})" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="${i}">${i === 0 ? '☆' : '★'}</button>`).join('')}
+                        <button type="button" onclick="setRatingGame(0)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="0">☆</button>
+                        <button type="button" onclick="setRatingGame(1)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="1">★</button>
+                        <button type="button" onclick="setRatingGame(2)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="2">★</button>
+                        <button type="button" onclick="setRatingGame(3)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="3">★</button>
+                        <button type="button" onclick="setRatingGame(4)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="4">★</button>
+                        <button type="button" onclick="setRatingGame(5)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="5">★</button>
+                        <button type="button" onclick="setRatingGame(6)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="6">★</button>
+                        <button type="button" onclick="setRatingGame(7)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="7">★</button>
+                        <button type="button" onclick="setRatingGame(8)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="8">★</button>
+                        <button type="button" onclick="setRatingGame(9)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="9">★</button>
+                        <button type="button" onclick="setRatingGame(10)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="10">★</button>
                     </div>
                     <input type="hidden" id="gameRating" value="0">
                     <p class="text-yellow-400 font-bold mt-2" id="gameRatingDisplay">0 / 10</p>
@@ -777,7 +695,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Global state
         let currentTab = 'movies';
         let movies = [], games = [];
         let displayedMovies = 0, displayedGames = 0;
@@ -1247,172 +1164,6 @@
         document.getElementById('viewMovieModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeViewModal('movie'); });
         document.getElementById('viewGameModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeViewModal('game'); });
 
-        
-
-        // ==================== VIEW MODALS ====================
-        window.openViewModal = function(type, id) {
-            const item = type === 'movie' ? movies.find(m => m.id === id) : games.find(g => g.id === id);
-            if (!item) return;
-
-            if (type === 'movie') {
-                const genreTags = (item.genres || []).map(g => `<span class="genre-tag ${getGenreClass(g)}">${g}</span>`).join('');
-                const originClass = item.origin === 'Русский' ? 'origin-russian' : 'origin-foreign';
-                document.getElementById('viewMoviePoster').src = item.posterUrl || 'https://placehold.co/800x400/2d3748/718096?text=Нет+постера';
-                document.getElementById('viewMovieOrigin').className = `origin-badge ${originClass}`;
-                document.getElementById('viewMovieOrigin').textContent = (item.origin === 'Русский' ? '🇷🇺 ' : '🌍 ') + (item.origin || '');
-                document.getElementById('viewMovieTitle').textContent = item.title;
-                document.getElementById('viewMovieGenres').innerHTML = genreTags;
-                document.getElementById('viewMovieWatcher').textContent = item.watcher || 'Аноним';
-                document.getElementById('viewMovieRating').textContent = (item.rating || 0) + '/10';
-                document.getElementById('viewMovieReview').textContent = item.review;
-                document.getElementById('viewMovieDate').textContent = item.date ? 'Добавлено: ' + new Date(item.date).toLocaleString('ru-RU') : '';
-                document.getElementById('viewMovieModal').classList.add('active');
-            } else {
-                const genreTags = (item.genres || []).map(g => `<span class="genre-tag ${getGenreClass(g)}">${g}</span>`).join('');
-                const platformTags = (item.platforms || []).map(p => `<span class="platform-tag ${getPlatformClass(p)}">${p}</span>`).join('');
-                document.getElementById('viewGamePoster').src = item.posterUrl || 'https://placehold.co/800x400/2d3748/718096?text=Нет+постера';
-                document.getElementById('viewGamePlatforms').innerHTML = platformTags;
-                document.getElementById('viewGameTitle').textContent = item.title;
-                document.getElementById('viewGameGenres').innerHTML = genreTags;
-                document.getElementById('viewGamePlayer').textContent = item.player || 'Аноним';
-                document.getElementById('viewGameRating').textContent = (item.rating || 0) + '/10';
-                document.getElementById('viewGameReview').textContent = item.review;
-                document.getElementById('viewGameDate').textContent = item.date ? 'Добавлено: ' + new Date(item.date).toLocaleString('ru-RU') : '';
-                document.getElementById('viewGameModal').classList.add('active');
-            }
-            document.body.style.overflow = 'hidden';
-        }
-
-        window.closeViewModal = function(type) {
-            document.getElementById('view' + (type === 'movie' ? 'Movie' : 'Game') + 'Modal').classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        // ==================== LOAD MORE ====================
-        window.loadMore = function(type) {
-            if (type === 'movies') renderMovies();
-            else renderGames();
-        }
-
-        // ==================== DRAFT ====================
-        function checkDraft() {
-            const saved = localStorage.getItem('movieDraft');
-            if (saved) {
-                draftData = JSON.parse(saved);
-                document.getElementById('draftBubble').classList.add('active');
-            }
-        }
-
-        function saveDraft() {
-            const type = document.getElementById('addMovieModal').classList.contains('active') ? 'movie' : 'game';
-            if (type === 'movie') {
-                const origin = document.querySelector('input[name="movieOrigin"]:checked')?.value || '';
-                draftData = {
-                    type: 'movie',
-                    title: document.getElementById('movieTitle').value,
-                    origin, genres: selectedGenresForm, rating: currentMovieRating,
-                    review: document.getElementById('movieReview').value,
-                    posterUrl: document.getElementById('moviePosterUrl').value,
-                    watcher: document.getElementById('movieWatcher').value
-                };
-            }
-            localStorage.setItem('movieDraft', JSON.stringify(draftData));
-            document.getElementById('draftBubble').classList.add('active');
-        }
-
-        window.restoreDraft = function() {
-            if (!draftData) return;
-            if (draftData.type === 'movie') {
-                openAddModal('movie');
-                document.getElementById('movieTitle').value = draftData.title || '';
-                if (draftData.origin) {
-                    const r = document.querySelector(`input[name="movieOrigin"][value="${draftData.origin}"]`);
-                    if (r) r.checked = true;
-                }
-                selectedGenresForm = [...(draftData.genres || [])];
-                document.querySelectorAll('#genreDropdown input').forEach(cb => {
-                    cb.checked = selectedGenresForm.includes(cb.id.replace('genre-', ''));
-                });
-                document.getElementById('genreSelectedText').textContent = selectedGenresForm.length ? selectedGenresForm.join(', ') : 'Выберите жанры...';
-                if (draftData.rating) setRatingMovie(draftData.rating);
-                document.getElementById('movieReview').value = draftData.review || '';
-                document.getElementById('moviePosterUrl').value = draftData.posterUrl || '';
-                document.getElementById('movieWatcher').value = draftData.watcher || '';
-            }
-        }
-
-        function clearDraft() {
-            localStorage.removeItem('movieDraft');
-            draftData = null;
-            document.getElementById('draftBubble').classList.remove('active');
-        }
-
-        ['movieTitle', 'movieReview', 'moviePosterUrl', 'movieWatcher'].forEach(id => {
-            document.getElementById(id)?.addEventListener('input', saveDraft);
-        });
-        document.querySelectorAll('input[name="movieOrigin"]').forEach(r => r.addEventListener('change', saveDraft));
-
-        // ==================== FORMS ====================
-        document.getElementById('addMovieForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
-            const text = document.getElementById('submitMovieText');
-            const loader = document.getElementById('submitMovieLoader');
-            btn.disabled = true; text.textContent = 'Сохраняем...'; loader.classList.remove('hidden');
-
-            try {
-                await addDoc(collection(db, "movies"), {
-                    title: document.getElementById('movieTitle').value,
-                    origin: document.querySelector('input[name="movieOrigin"]:checked')?.value || '',
-                    genres: selectedGenresForm,
-                    rating: parseInt(document.getElementById('movieRating').value) || 0,
-                    review: document.getElementById('movieReview').value,
-                    watcher: document.getElementById('movieWatcher').value || 'Аноним',
-                    posterUrl: document.getElementById('moviePosterUrl').value || '',
-                    date: new Date().toISOString()
-                });
-                clearDraft(); e.target.reset(); setRatingMovie(0); selectedGenresForm = [];
-                document.querySelectorAll('#genreDropdown input').forEach(cb => cb.checked = false);
-                document.getElementById('genreSelectedText').textContent = 'Выберите жанры...';
-                closeAddModal('movie'); loadMovies();
-            } catch (err) { alert('Ошибка: ' + err.message); }
-            finally { btn.disabled = false; text.textContent = 'Добавить рецензию'; loader.classList.add('hidden'); }
-        });
-
-        document.getElementById('addGameForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
-            const text = document.getElementById('submitGameText');
-            const loader = document.getElementById('submitGameLoader');
-            btn.disabled = true; text.textContent = 'Сохраняем...'; loader.classList.remove('hidden');
-
-            const platforms = Array.from(document.querySelectorAll('input[name="gamePlatform"]:checked')).map(cb => cb.value);
-
-            try {
-                await addDoc(collection(db, "games"), {
-                    title: document.getElementById('gameTitle').value,
-                    platforms: platforms,
-                    genres: selectedGameGenresForm,
-                    rating: parseInt(document.getElementById('gameRating').value) || 0,
-                    review: document.getElementById('gameReview').value,
-                    player: document.getElementById('gamePlayer').value || 'Аноним',
-                    posterUrl: document.getElementById('gamePosterUrl').value || '',
-                    date: new Date().toISOString()
-                });
-                e.target.reset(); setRatingGame(0); selectedGameGenresForm = [];
-                document.querySelectorAll('#genreGameDropdown input').forEach(cb => cb.checked = false);
-                document.getElementById('genreGameSelectedText').textContent = 'Выберите жанры...';
-                closeAddModal('game'); loadGames();
-            } catch (err) { alert('Ошибка: ' + err.message); }
-            finally { btn.disabled = false; text.textContent = 'Добавить рецензию'; loader.classList.add('hidden'); }
-        });
-
-        // Close modals on backdrop
-        document.getElementById('addMovieModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeAddModal('movie'); });
-        document.getElementById('addGameModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeAddModal('game'); });
-        document.getElementById('viewMovieModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeViewModal('movie'); });
-        document.getElementById('viewGameModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeViewModal('game'); });
-
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeAddModal('movie'); closeAddModal('game');
@@ -1420,421 +1171,10 @@
             }
         });
 
-        // ==================== INIT ====================
+        // Init
+        checkDraft();
         loadMovies();
         loadGames();
-        checkDraft();
-
-    </script>
-
-    <!-- ==================== BUILT-IN GAMES (non-module) ==================== -->
-    <script>
-    // ===== SNAKE =====
-    let snake = [], snakeDir = 'right', snakeFood = {}, snakeInterval = null, snakePaused = false, snakeScore = 0;
-    const SNAKE_SIZE = 20, SNAKE_COLS = 20, SNAKE_ROWS = 20;
-    const snakeCanvas = document.getElementById('snakeCanvas');
-    const snakeCtx = snakeCanvas.getContext('2d');
-
-    function startSnake() {
-        if (snakeInterval) clearInterval(snakeInterval);
-        snake = [{x: 5, y: 10}, {x: 4, y: 10}, {x: 3, y: 10}];
-        snakeDir = 'right';
-        snakeScore = 0;
-        snakePaused = false;
-        document.getElementById('snakeScore').textContent = '0';
-        spawnSnakeFood();
-        snakeInterval = setInterval(updateSnake, 150);
-        drawSnake();
-    }
-
-    function pauseSnake() {
-        snakePaused = !snakePaused;
-    }
-
-    function spawnSnakeFood() {
-        do {
-            snakeFood = { x: Math.floor(Math.random() * SNAKE_COLS), y: Math.floor(Math.random() * SNAKE_ROWS) };
-        } while (snake.some(s => s.x === snakeFood.x && s.y === snakeFood.y));
-    }
-
-    function updateSnake() {
-        if (snakePaused) return;
-        const head = { ...snake[0] };
-        if (snakeDir === 'up') head.y--;
-        if (snakeDir === 'down') head.y++;
-        if (snakeDir === 'left') head.x--;
-        if (snakeDir === 'right') head.x++;
-
-        if (head.x < 0 || head.x >= SNAKE_COLS || head.y < 0 || head.y >= SNAKE_ROWS || snake.some(s => s.x === head.x && s.y === head.y)) {
-            clearInterval(snakeInterval);
-            alert('Игра окончена! Очки: ' + snakeScore);
-            return;
-        }
-
-        snake.unshift(head);
-        if (head.x === snakeFood.x && head.y === snakeFood.y) {
-            snakeScore += 10;
-            document.getElementById('snakeScore').textContent = snakeScore;
-            spawnSnakeFood();
-        } else {
-            snake.pop();
-        }
-        drawSnake();
-    }
-
-    function drawSnake() {
-        snakeCtx.fillStyle = '#1f2937';
-        snakeCtx.fillRect(0, 0, snakeCanvas.width, snakeCanvas.height);
-
-        const cellW = snakeCanvas.width / SNAKE_COLS;
-        const cellH = snakeCanvas.height / SNAKE_ROWS;
-
-        snakeCtx.fillStyle = '#10b981';
-        snake.forEach((s, i) => {
-            snakeCtx.fillStyle = i === 0 ? '#34d399' : '#10b981';
-            snakeCtx.fillRect(s.x * cellW + 1, s.y * cellH + 1, cellW - 2, cellH - 2);
-        });
-
-        snakeCtx.fillStyle = '#ef4444';
-        snakeCtx.fillRect(snakeFood.x * cellW + 1, snakeFood.y * cellH + 1, cellW - 2, cellH - 2);
-    }
-
-    document.addEventListener('keydown', (e) => {
-        if (!snakeInterval) return;
-        if (e.key === 'ArrowUp' && snakeDir !== 'down') snakeDir = 'up';
-        if (e.key === 'ArrowDown' && snakeDir !== 'up') snakeDir = 'down';
-        if (e.key === 'ArrowLeft' && snakeDir !== 'right') snakeDir = 'left';
-        if (e.key === 'ArrowRight' && snakeDir !== 'left') snakeDir = 'right';
-    });
-
-    // ===== TETRIS =====
-    let tetrisBoard = [], tetrisPiece = null, tetrisInterval = null, tetrisScore = 0, tetrisPaused = false;
-    const TETRIS_COLS = 10, TETRIS_ROWS = 20;
-    const tetrisCanvas = document.getElementById('tetrisCanvas');
-    const tetrisCtx = tetrisCanvas.getContext('2d');
-    const TETRIS_SHAPES = [
-        [[1,1,1,1]],
-        [[1,1],[1,1]],
-        [[1,1,1],[0,1,0]],
-        [[1,1,1],[1,0,0]],
-        [[1,1,1],[0,0,1]],
-        [[1,1,0],[0,1,1]],
-        [[0,1,1],[1,1,0]]
-    ];
-    const TETRIS_COLORS = ['#06b6d4', '#fbbf24', '#a855f7', '#22c55e', '#ef4444', '#f97316', '#3b82f6'];
-
-    function startTetris() {
-        if (tetrisInterval) clearInterval(tetrisInterval);
-        tetrisBoard = Array(TETRIS_ROWS).fill().map(() => Array(TETRIS_COLS).fill(0));
-        tetrisScore = 0;
-        tetrisPaused = false;
-        document.getElementById('tetrisScore').textContent = '0';
-        spawnTetrisPiece();
-        tetrisInterval = setInterval(updateTetris, 500);
-        drawTetris();
-    }
-
-    function pauseTetris() {
-        tetrisPaused = !tetrisPaused;
-    }
-
-    function spawnTetrisPiece() {
-        const idx = Math.floor(Math.random() * TETRIS_SHAPES.length);
-        tetrisPiece = {
-            shape: TETRIS_SHAPES[idx],
-            color: TETRIS_COLORS[idx],
-            x: Math.floor(TETRIS_COLS / 2) - 1,
-            y: 0
-        };
-        if (collision(tetrisPiece, 0, 0)) {
-            clearInterval(tetrisInterval);
-            alert('Игра окончена! Очки: ' + tetrisScore);
-        }
-    }
-
-    function collision(piece, dx, dy, newShape) {
-        const shape = newShape || piece.shape;
-        for (let y = 0; y < shape.length; y++) {
-            for (let x = 0; x < shape[y].length; x++) {
-                if (shape[y][x]) {
-                    const nx = piece.x + x + dx, ny = piece.y + y + dy;
-                    if (nx < 0 || nx >= TETRIS_COLS || ny >= TETRIS_ROWS) return true;
-                    if (ny >= 0 && tetrisBoard[ny][nx]) return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    function mergePiece() {
-        tetrisPiece.shape.forEach((row, y) => {
-            row.forEach((cell, x) => {
-                if (cell && tetrisPiece.y + y >= 0) {
-                    tetrisBoard[tetrisPiece.y + y][tetrisPiece.x + x] = tetrisPiece.color;
-                }
-            });
-        });
-        let lines = 0;
-        for (let y = TETRIS_ROWS - 1; y >= 0; y--) {
-            if (tetrisBoard[y].every(c => c !== 0)) {
-                tetrisBoard.splice(y, 1);
-                tetrisBoard.unshift(Array(TETRIS_COLS).fill(0));
-                lines++;
-                y++;
-            }
-        }
-        if (lines > 0) {
-            tetrisScore += lines * 100 * lines;
-            document.getElementById('tetrisScore').textContent = tetrisScore;
-        }
-        spawnTetrisPiece();
-    }
-
-    function rotatePiece() {
-        const rotated = tetrisPiece.shape[0].map((_, i) => tetrisPiece.shape.map(row => row[i]).reverse());
-        if (!collision(tetrisPiece, 0, 0, rotated)) tetrisPiece.shape = rotated;
-    }
-
-    function updateTetris() {
-        if (tetrisPaused) return;
-        if (!collision(tetrisPiece, 0, 1)) {
-            tetrisPiece.y++;
-        } else {
-            mergePiece();
-        }
-        drawTetris();
-    }
-
-    function drawTetris() {
-        tetrisCtx.fillStyle = '#1f2937';
-        tetrisCtx.fillRect(0, 0, tetrisCanvas.width, tetrisCanvas.height);
-
-        const cellW = tetrisCanvas.width / TETRIS_COLS;
-        const cellH = tetrisCanvas.height / TETRIS_ROWS;
-
-        tetrisBoard.forEach((row, y) => {
-            row.forEach((cell, x) => {
-                if (cell) {
-                    tetrisCtx.fillStyle = cell;
-                    tetrisCtx.fillRect(x * cellW + 1, y * cellH + 1, cellW - 2, cellH - 2);
-                }
-            });
-        });
-
-        if (tetrisPiece) {
-            tetrisCtx.fillStyle = tetrisPiece.color;
-            tetrisPiece.shape.forEach((row, y) => {
-                row.forEach((cell, x) => {
-                    if (cell) {
-                        tetrisCtx.fillRect((tetrisPiece.x + x) * cellW + 1, (tetrisPiece.y + y) * cellH + 1, cellW - 2, cellH - 2);
-                    }
-                });
-            });
-        }
-    }
-
-    document.addEventListener('keydown', (e) => {
-        if (!tetrisInterval || !tetrisPiece || tetrisPaused) return;
-        if (e.key === 'ArrowLeft' && !collision(tetrisPiece, -1, 0)) { tetrisPiece.x--; drawTetris(); }
-        if (e.key === 'ArrowRight' && !collision(tetrisPiece, 1, 0)) { tetrisPiece.x++; drawTetris(); }
-        if (e.key === 'ArrowDown' && !collision(tetrisPiece, 0, 1)) { tetrisPiece.y++; drawTetris(); }
-        if (e.key === 'ArrowUp') { rotatePiece(); drawTetris(); }
-    });
-
-    // ===== SUDOKU =====
-    let sudokuSolution = [], sudokuBoard = [];
-    const sudokuBoardEl = document.getElementById('sudokuBoard');
-
-    function generateSudoku() {
-        sudokuSolution = Array(9).fill().map(() => Array(9).fill(0));
-        fillSudoku(sudokuSolution);
-        sudokuBoard = sudokuSolution.map(row => row.map(v => Math.random() > 0.5 ? v : 0));
-        renderSudoku();
-    }
-
-    function fillSudoku(board) {
-        for (let r = 0; r < 9; r++) {
-            for (let c = 0; c < 9; c++) {
-                if (board[r][c] === 0) {
-                    const nums = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
-                    for (const n of nums) {
-                        if (isValidSudoku(board, r, c, n)) {
-                            board[r][c] = n;
-                            if (fillSudoku(board)) return true;
-                            board[r][c] = 0;
-                        }
-                    }
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    function isValidSudoku(board, row, col, num) {
-        for (let x = 0; x < 9; x++) if (board[row][x] === num) return false;
-        for (let x = 0; x < 9; x++) if (board[x][col] === num) return false;
-        const startRow = row - row % 3, startCol = col - col % 3;
-        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) if (board[i + startRow][j + startCol] === num) return false;
-        return true;
-    }
-
-    function renderSudoku() {
-        sudokuBoardEl.innerHTML = '';
-        for (let r = 0; r < 9; r++) {
-            const rowDiv = document.createElement('div');
-            rowDiv.className = 'sudoku-row flex';
-            for (let c = 0; c < 9; c++) {
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.className = 'sudoku-cell' + (sudokuBoard[r][c] !== 0 ? ' fixed' : '');
-                input.value = sudokuBoard[r][c] !== 0 ? sudokuBoard[r][c] : '';
-                input.maxLength = 1;
-                if (sudokuBoard[r][c] !== 0) input.readOnly = true;
-                input.addEventListener('input', (e) => {
-                    const val = parseInt(e.target.value);
-                    if (val >= 1 && val <= 9) {
-                        sudokuBoard[r][c] = val;
-                        e.target.classList.remove('error');
-                    } else {
-                        e.target.value = '';
-                        sudokuBoard[r][c] = 0;
-                    }
-                });
-                rowDiv.appendChild(input);
-            }
-            sudokuBoardEl.appendChild(rowDiv);
-        }
-    }
-
-    function checkSudoku() {
-        let correct = true;
-        const inputs = sudokuBoardEl.querySelectorAll('.sudoku-cell');
-        inputs.forEach((input, i) => {
-            const r = Math.floor(i / 9), c = i % 9;
-            if (sudokuBoard[r][c] !== 0 && sudokuBoard[r][c] !== sudokuSolution[r][c]) {
-                input.classList.add('error');
-                correct = false;
-            } else {
-                input.classList.remove('error');
-            }
-        });
-        alert(correct ? 'Всё верно! 🎉' : 'Есть ошибки! ❌');
-    }
-
-    function solveSudoku() {
-        const inputs = sudokuBoardEl.querySelectorAll('.sudoku-cell');
-        inputs.forEach((input, i) => {
-            const r = Math.floor(i / 9), c = i % 9;
-            if (sudokuBoard[r][c] === 0) {
-                input.value = sudokuSolution[r][c];
-                sudokuBoard[r][c] = sudokuSolution[r][c];
-            }
-        });
-    }
-
-    generateSudoku();
-
-    // ===== MINESWEEPER =====
-    let mineBoard = [], mineRevealed = [], mineFlagged = [], mineCount = 10;
-    const MINESWEEPER_ROWS = 9, MINESWEEPER_COLS = 9;
-    const minesweeperBoardEl = document.getElementById('minesweeperBoard');
-
-    function startMinesweeper() {
-        mineBoard = Array(MINESWEEPER_ROWS).fill().map(() => Array(MINESWEEPER_COLS).fill(0));
-        mineRevealed = Array(MINESWEEPER_ROWS).fill().map(() => Array(MINESWEEPER_COLS).fill(false));
-        mineFlagged = Array(MINESWEEPER_ROWS).fill().map(() => Array(MINESWEEPER_COLS).fill(false));
-
-        let placed = 0;
-        while (placed < mineCount) {
-            const r = Math.floor(Math.random() * MINESWEEPER_ROWS);
-            const c = Math.floor(Math.random() * MINESWEEPER_COLS);
-            if (mineBoard[r][c] !== -1) {
-                mineBoard[r][c] = -1;
-                placed++;
-                for (let dr = -1; dr <= 1; dr++) {
-                    for (let dc = -1; dc <= 1; dc++) {
-                        const nr = r + dr, nc = c + dc;
-                        if (nr >= 0 && nr < MINESWEEPER_ROWS && nc >= 0 && nc < MINESWEEPER_COLS && mineBoard[nr][nc] !== -1) {
-                            mineBoard[nr][nc]++;
-                        }
-                    }
-                }
-            }
-        }
-        document.getElementById('mineCount').textContent = mineCount;
-        renderMinesweeper();
-    }
-
-    function renderMinesweeper() {
-        minesweeperBoardEl.innerHTML = '';
-        minesweeperBoardEl.style.gridTemplateColumns = `repeat(${MINESWEEPER_COLS}, 30px)`;
-        for (let r = 0; r < MINESWEEPER_ROWS; r++) {
-            for (let c = 0; c < MINESWEEPER_COLS; c++) {
-                const cell = document.createElement('div');
-                cell.className = 'mine-cell';
-                if (mineRevealed[r][c]) {
-                    cell.classList.add('revealed');
-                    if (mineBoard[r][c] === -1) {
-                        cell.classList.add('mine');
-                        cell.textContent = '💣';
-                    } else if (mineBoard[r][c] > 0) {
-                        cell.textContent = mineBoard[r][c];
-                        const colors = ['', '#3b82f6', '#22c55e', '#ef4444', '#a855f7', '#f97316', '#06b6d4', '#1f2937', '#6b7280'];
-                        cell.style.color = colors[mineBoard[r][c]];
-                    }
-                } else if (mineFlagged[r][c]) {
-                    cell.classList.add('flagged');
-                    cell.textContent = '🚩';
-                }
-                cell.addEventListener('click', () => revealMine(r, c));
-                cell.addEventListener('contextmenu', (e) => { e.preventDefault(); toggleFlag(r, c); });
-                minesweeperBoardEl.appendChild(cell);
-            }
-        }
-    }
-
-    function revealMine(r, c) {
-        if (mineRevealed[r][c] || mineFlagged[r][c]) return;
-        mineRevealed[r][c] = true;
-        if (mineBoard[r][c] === -1) {
-            renderMinesweeper();
-            setTimeout(() => alert('БАБАХ! 💥 Игра окончена!'), 100);
-            return;
-        }
-        if (mineBoard[r][c] === 0) {
-            for (let dr = -1; dr <= 1; dr++) {
-                for (let dc = -1; dc <= 1; dc++) {
-                    const nr = r + dr, nc = c + dc;
-                    if (nr >= 0 && nr < MINESWEEPER_ROWS && nc >= 0 && nc < MINESWEEPER_COLS && !mineRevealed[nr][nc]) {
-                        revealMine(nr, nc);
-                    }
-                }
-            }
-        }
-        renderMinesweeper();
-        checkWin();
-    }
-
-    function toggleFlag(r, c) {
-        if (mineRevealed[r][c]) return;
-        mineFlagged[r][c] = !mineFlagged[r][c];
-        renderMinesweeper();
-    }
-
-    function checkWin() {
-        let revealed = 0;
-        for (let r = 0; r < MINESWEEPER_ROWS; r++) {
-            for (let c = 0; c < MINESWEEPER_COLS; c++) {
-                if (mineRevealed[r][c]) revealed++;
-            }
-        }
-        if (revealed === MINESWEEPER_ROWS * MINESWEEPER_COLS - mineCount) {
-            setTimeout(() => alert('Победа! 🎉 Все мины обезврежены!'), 100);
-        }
-    }
-
-    startMinesweeper();
     </script>
 </body>
 </html>
