@@ -376,15 +376,15 @@
                 <div class="flex flex-wrap gap-2 items-center" id="ratingFilters">
                     <button class="filter-btn active" onclick="toggleRating('all', this)">Все</button>
                     <button class="filter-btn" onclick="toggleRating(10, this)">10 ★</button>
-                    <button class="filter-btn" onclick="toggleRating(9, this)">9+</button>
-                    <button class="filter-btn" onclick="toggleRating(8, this)">8+</button>
-                    <button class="filter-btn" onclick="toggleRating(7, this)">7+</button>
-                    <button class="filter-btn" onclick="toggleRating(6, this)">6+</button>
-                    <button class="filter-btn" onclick="toggleRating(5, this)">5+</button>
-                    <button class="filter-btn" onclick="toggleRating(4, this)">4+</button>
-                    <button class="filter-btn" onclick="toggleRating(3, this)">3+</button>
-                    <button class="filter-btn" onclick="toggleRating(2, this)">2+</button>
-                    <button class="filter-btn" onclick="toggleRating(1, this)">1+</button>
+                    <button class="filter-btn" onclick="toggleRating(9, this)">9</button>
+                    <button class="filter-btn" onclick="toggleRating(8, this)">8</button>
+                    <button class="filter-btn" onclick="toggleRating(7, this)">7</button>
+                    <button class="filter-btn" onclick="toggleRating(6, this)">6</button>
+                    <button class="filter-btn" onclick="toggleRating(5, this)">5</button>
+                    <button class="filter-btn" onclick="toggleRating(4, this)">4</button>
+                    <button class="filter-btn" onclick="toggleRating(3, this)">3</button>
+                    <button class="filter-btn" onclick="toggleRating(2, this)">2</button>
+                    <button class="filter-btn" onclick="toggleRating(1, this)">1</button>
                     <button class="filter-btn" onclick="toggleRating(0, this)">0</button>
                 </div>
             </div>
@@ -447,15 +447,15 @@
                 <div class="flex flex-wrap gap-2 items-center" id="ratingFiltersGames">
                     <button class="filter-btn active" onclick="toggleRatingGame('all', this)">Все</button>
                     <button class="filter-btn" onclick="toggleRatingGame(10, this)">10 ★</button>
-                    <button class="filter-btn" onclick="toggleRatingGame(9, this)">9+</button>
-                    <button class="filter-btn" onclick="toggleRatingGame(8, this)">8+</button>
-                    <button class="filter-btn" onclick="toggleRatingGame(7, this)">7+</button>
-                    <button class="filter-btn" onclick="toggleRatingGame(6, this)">6+</button>
-                    <button class="filter-btn" onclick="toggleRatingGame(5, this)">5+</button>
-                    <button class="filter-btn" onclick="toggleRatingGame(4, this)">4+</button>
-                    <button class="filter-btn" onclick="toggleRatingGame(3, this)">3+</button>
-                    <button class="filter-btn" onclick="toggleRatingGame(2, this)">2+</button>
-                    <button class="filter-btn" onclick="toggleRatingGame(1, this)">1+</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(9, this)">9</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(8, this)">8</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(7, this)">7</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(6, this)">6</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(5, this)">5</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(4, this)">4</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(3, this)">3</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(2, this)">2</button>
+                    <button class="filter-btn" onclick="toggleRatingGame(1, this)">1</button>
                     <button class="filter-btn" onclick="toggleRatingGame(0, this)">0</button>
                 </div>
             </div>
@@ -805,10 +805,10 @@
                     return selectedGenres.some(g => mg.includes(g));
                 });
             }
-            // Rating filter
+            // Rating filter - exact match
             if (selectedRating !== 'all') {
-                const minRating = parseInt(selectedRating);
-                result = result.filter(m => (m.rating || 0) >= minRating);
+                const targetRating = parseInt(selectedRating);
+                result = result.filter(m => (m.rating || 0) === targetRating);
             }
             return result;
         }
@@ -915,10 +915,10 @@
                     return selectedGameGenres.some(genre => gg.includes(genre));
                 });
             }
-            // Rating filter
+            // Rating filter - exact match
             if (selectedGameRating !== 'all') {
-                const minRating = parseInt(selectedGameRating);
-                result = result.filter(g => (g.rating || 0) >= minRating);
+                const targetRating = parseInt(selectedGameRating);
+                result = result.filter(g => (g.rating || 0) === targetRating);
             }
             return result;
         }
