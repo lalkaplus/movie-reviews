@@ -308,7 +308,38 @@
         .platform-xbox { background: #107c10; color: white; }
         .platform-switch { background: #e60012; color: white; }
         .platform-mobile { background: #8b5cf6; color: white; }
-    </style>
+    
+        /* Wheel of Fortune */
+        .wheel-container {
+            position: relative;
+        }
+        #wheelCanvas {
+            transition: transform 0.1s linear;
+        }
+        #spinBtn {
+            cursor: pointer;
+            user-select: none;
+        }
+        #spinBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: translate(-50%, -50%) scale(1) !important;
+        }
+        #spinBtn.spinning {
+            animation: pulseSpin 0.5s ease infinite alternate;
+        }
+        @keyframes pulseSpin {
+            from { box-shadow: 0 0 10px rgba(99, 102, 241, 0.5); }
+            to { box-shadow: 0 0 25px rgba(168, 85, 247, 0.8); }
+        }
+        .wheel-segment-label {
+            font-size: 11px;
+            font-weight: 600;
+            fill: white;
+            text-anchor: middle;
+            dominant-baseline: middle;
+        }
+</style>
 <base target="_blank">
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
@@ -331,7 +362,11 @@
             <nav class="flex gap-2 flex-wrap">
                 <button class="nav-tab active" onclick="switchTab('movies')">🎬 Фильмы</button>
                 <button class="nav-tab" onclick="switchTab('games')">🎮 Игры</button>
-            </nav>
+            
+                <button onclick="openWheelModal()" class="ml-auto bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 px-4 py-2 rounded-xl font-medium transition flex items-center gap-2 text-sm" title="Не знаешь что посмотреть?">
+                    <span class="text-lg">🎡</span> Колесо Фортуны
+                </button>
+</nav>
         </div>
     </header>
 
@@ -477,7 +512,95 @@
         </main>
     </section>
 
-    <!-- Add Movie Modal -->
+    <!-- Wheel of Fortune Modal -->
+    <div id="wheelModal" class="modal fixed inset-0 bg-black/90 backdrop-blur-sm z-50 items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-2xl max-w-lg w-full border border-gray-700 relative overflow-hidden">
+            <div class="p-6 border-b border-gray-700 flex justify-between items-center">
+                <h2 class="text-xl font-bold">🎡 Что посмотреть?</h2>
+                <button onclick="closeWheelModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <div class="p-6 flex flex-col items-center">
+                <p class="text-gray-400 text-sm mb-4 text-center">Не знаешь что посмотреть? Крути колесо — выпадет случайный фильм с КиноПоиска!</p>
+
+                <!-- Genre filter for wheel -->
+                <div class="mb-4 w-full">
+                    <p class="text-gray-400 text-sm mb-2 text-center">Фильтр по жанру:</p>
+                    <div class="flex flex-wrap gap-2 justify-center" id="wheelGenreFilters">
+                        <button class="filter-btn active" onclick="setWheelGenre('all', this)">Любой</button>
+                        <button class="filter-btn" onclick="setWheelGenre('комедия', this)">Комедия</button>
+                        <button class="filter-btn" onclick="setWheelGenre('боевик', this)">Боевик</button>
+                        <button class="filter-btn" onclick="setWheelGenre('драма', this)">Драма</button>
+                        <button class="filter-btn" onclick="setWheelGenre('ужасы', this)">Ужасы</button>
+                        <button class="filter-btn" onclick="setWheelGenre('фантастика', this)">Фантастика</button>
+                        <button class="filter-btn" onclick="setWheelGenre('триллер', this)">Триллер</button>
+                        <button class="filter-btn" onclick="setWheelGenre('мелодрама', this)">Мелодрама</button>
+                        <button class="filter-btn" onclick="setWheelGenre('приключения', this)">Приключения</button>
+                        <button class="filter-btn" onclick="setWheelGenre('мультфильм', this)">Мультфильм</button>
+                        <button class="filter-btn" onclick="setWheelGenre('детектив', this)">Детектив</button>
+                        <button class="filter-btn" onclick="setWheelGenre('фэнтези', this)">Фэнтези</button>
+                    </div>
+                </div>
+
+                <div class="relative mb-6">
+                    <!-- Pointer -->
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-10" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
+                        <svg width="30" height="40" viewBox="0 0 30 40">
+                            <polygon points="15,40 0,0 30,0" fill="#ef4444"/>
+                        </svg>
+                    </div>
+                    <!-- Canvas -->
+                    <canvas id="wheelCanvas" width="320" height="320" class="rounded-full border-4 border-gray-700"></canvas>
+                    <!-- Center button -->
+                    <button id="spinBtn" onclick="spinWheel()" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg hover:scale-110 transition border-4 border-gray-800 z-20">
+                        КРУТИ
+                    </button>
+                </div>
+
+                <!-- Loading -->
+                <div id="wheelLoading" class="hidden mb-4 flex flex-col items-center">
+                    <div class="loader"></div>
+                    <p class="text-gray-400 text-sm mt-2">Ищем фильм на КиноПоиске...</p>
+                </div>
+
+                <!-- Result area -->
+                <div id="wheelResult" class="hidden w-full">
+                    <div class="bg-gray-700/50 rounded-xl p-4">
+                        <div class="flex gap-4">
+                            <img id="wheelResultPoster" src="" alt="" class="w-24 h-36 object-cover rounded-lg flex-shrink-0">
+                            <div class="flex-1 min-w-0">
+                                <h3 id="wheelResultTitle" class="text-lg font-bold text-white mb-1 truncate"></h3>
+                                <p id="wheelResultYear" class="text-gray-400 text-sm mb-1"></p>
+                                <div id="wheelResultGenres" class="flex flex-wrap gap-1 mb-2"></div>
+                                <div class="flex items-center gap-3 mb-2">
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-yellow-400">★</span>
+                                        <span id="wheelResultKpRating" class="text-white font-bold"></span>
+                                        <span class="text-gray-500 text-xs">КП</span>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-yellow-400">★</span>
+                                        <span id="wheelResultImdbRating" class="text-white font-bold"></span>
+                                        <span class="text-gray-500 text-xs">IMDb</span>
+                                    </div>
+                                </div>
+                                <p id="wheelResultDesc" class="text-gray-300 text-sm line-clamp-3"></p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex gap-2">
+                            <a id="wheelKpLink" href="#" target="_blank" class="flex-1 bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm font-medium transition text-center">
+                                Открыть на КиноПоиске
+                            </a>
+                            <button onclick="spinWheel()" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-medium transition">
+                                🔄 Ещё раз
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Add Movie Modal -->
     <div id="addMovieModal" class="modal fixed inset-0 bg-black/80 backdrop-blur-sm z-50 items-center justify-center p-4">
         <div class="bg-gray-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-gray-700">
             <div class="p-6 border-b border-gray-700 flex justify-between items-center">
@@ -1261,7 +1384,226 @@
             }
         });
 
-        // Init
+        // ==================== WHEEL OF FORTUNE ====================
+        const KP_API_TOKEN = 'YOUR_KINOPOISK_DEV_TOKEN';
+        let wheelGenre = 'all';
+        let wheelRotation = 0;
+        let isSpinning = false;
+        let wheelResultItem = null;
+
+        window.openWheelModal = function() {
+            document.getElementById('wheelModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            drawWheel();
+        }
+
+        window.closeWheelModal = function() {
+            document.getElementById('wheelModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        window.setWheelGenre = function(genre, btn) {
+            wheelGenre = genre;
+            document.querySelectorAll('#wheelGenreFilters .filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('wheelResult').classList.add('hidden');
+        }
+
+        function drawWheel() {
+            const canvas = document.getElementById('wheelCanvas');
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 150;
+            const count = 12;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const colors = [
+                '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e',
+                '#f97316', '#eab308', '#22c55e', '#06b6d4',
+                '#3b82f6', '#a855f7', '#d946ef', '#f59e0b'
+            ];
+
+            const anglePerItem = (2 * Math.PI) / count;
+
+            for (let i = 0; i < count; i++) {
+                const startAngle = i * anglePerItem + wheelRotation;
+                const endAngle = (i + 1) * anglePerItem + wheelRotation;
+
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.strokeStyle = '#1f2937';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw emoji icons instead of text
+                const textAngle = startAngle + anglePerItem / 2;
+                const textRadius = radius * 0.6;
+                const textX = centerX + Math.cos(textAngle) * textRadius;
+                const textY = centerY + Math.sin(textAngle) * textRadius;
+
+                ctx.save();
+                ctx.translate(textX, textY);
+                ctx.rotate(textAngle + Math.PI / 2);
+                ctx.font = '24px serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const emojis = ['🎬', '🍿', '🎞️', '📽️', '🎭', '🎪', '🎨', '🎤', '🎧', '🎸', '🎹', '🎺'];
+                ctx.fillText(emojis[i], 0, 0);
+                ctx.restore();
+            }
+
+            // Center circle
+            ctx.fillStyle = '#1f2937';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 35, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        async function fetchRandomMovieFromKinopoisk() {
+            const url = new URL('https://api.kinopoisk.dev/v1.4/movie/random');
+            if (wheelGenre !== 'all') {
+                url.searchParams.append('genres.name', wheelGenre);
+            }
+            url.searchParams.append('type', 'movie');
+
+            const response = await fetch(url, {
+                headers: { 'X-API-KEY': KP_API_TOKEN }
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка API КиноПоиска: ' + response.status);
+            }
+
+            return await response.json();
+        }
+
+        window.spinWheel = async function() {
+            if (isSpinning) return;
+
+            isSpinning = true;
+            const spinBtn = document.getElementById('spinBtn');
+            spinBtn.disabled = true;
+            spinBtn.classList.add('spinning');
+            spinBtn.textContent = '...';
+            document.getElementById('wheelResult').classList.add('hidden');
+            document.getElementById('wheelLoading').classList.remove('hidden');
+
+            // Start spinning animation
+            const duration = 3000;
+            const startTime = performance.now();
+            const startRotation = wheelRotation;
+            const extraSpins = 5 + Math.random() * 3;
+            const targetRotation = extraSpins * 2 * Math.PI;
+            const rotationDelta = targetRotation;
+
+            function easeOutCubic(t) {
+                return 1 - Math.pow(1 - t, 3);
+            }
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = easeOutCubic(progress);
+                wheelRotation = startRotation + rotationDelta * eased;
+                drawWheel();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            }
+            requestAnimationFrame(animate);
+
+            // Fetch movie while wheel spins
+            let movieData = null;
+            let errorMsg = null;
+
+            try {
+                movieData = await fetchRandomMovieFromKinopoisk();
+            } catch (err) {
+                errorMsg = err.message;
+            }
+
+            // Wait for animation to finish
+            await new Promise(r => setTimeout(r, duration));
+
+            isSpinning = false;
+            spinBtn.disabled = false;
+            spinBtn.classList.remove('spinning');
+            spinBtn.textContent = 'КРУТИ';
+            document.getElementById('wheelLoading').classList.add('hidden');
+
+            if (errorMsg) {
+                alert('Ошибка: ' + errorMsg + '
+
+Возможно, нужно указать токен API КиноПоиска. Получите его на kinopoisk.dev');
+                return;
+            }
+
+            wheelResultItem = movieData;
+            showWheelResult(movieData);
+        }
+
+        function showWheelResult(movie) {
+            const resultDiv = document.getElementById('wheelResult');
+            const posterEl = document.getElementById('wheelResultPoster');
+            const titleEl = document.getElementById('wheelResultTitle');
+            const yearEl = document.getElementById('wheelResultYear');
+            const genresEl = document.getElementById('wheelResultGenres');
+            const kpRatingEl = document.getElementById('wheelResultKpRating');
+            const imdbRatingEl = document.getElementById('wheelResultImdbRating');
+            const descEl = document.getElementById('wheelResultDesc');
+            const kpLinkEl = document.getElementById('wheelKpLink');
+
+            // Poster
+            const posterUrl = movie.poster?.url || movie.poster?.previewUrl || '';
+            posterEl.src = posterUrl || 'https://placehold.co/96x144/2d3748/718096?text=Нет+постера';
+            posterEl.onerror = function() { this.src = 'https://placehold.co/96x144/2d3748/718096?text=Нет+постера'; };
+
+            // Title
+            titleEl.textContent = movie.name || movie.alternativeName || 'Без названия';
+
+            // Year
+            yearEl.textContent = movie.year ? `${movie.year} г.` : '';
+            if (movie.movieLength) {
+                yearEl.textContent += ` • ${movie.movieLength} мин.`;
+            }
+            if (movie.countries && movie.countries.length > 0) {
+                yearEl.textContent += ` • ${movie.countries.map(c => c.name).join(', ')}`;
+            }
+
+            // Genres
+            const genres = (movie.genres || []).map(g => g.name);
+            genresEl.innerHTML = genres.map(g => `<span class="genre-tag ${getGenreClass(g.charAt(0).toUpperCase() + g.slice(1))}">${g.charAt(0).toUpperCase() + g.slice(1)}</span>`).join('');
+
+            // Ratings
+            const kpRating = movie.rating?.kp || 0;
+            const imdbRating = movie.rating?.imdb || 0;
+            kpRatingEl.textContent = kpRating ? kpRating.toFixed(1) : '—';
+            imdbRatingEl.textContent = imdbRating ? imdbRating.toFixed(1) : '—';
+
+            // Description
+            descEl.textContent = movie.description || movie.shortDescription || 'Описание отсутствует';
+
+            // Link to Kinopoisk
+            const kpId = movie.id || movie.kinopoiskId;
+            kpLinkEl.href = kpId ? `https://www.kinopoisk.ru/film/${kpId}/` : '#';
+
+            resultDiv.classList.remove('hidden');
+        }
+
+        // Close wheel modal on backdrop
+        document.getElementById('wheelModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeWheelModal();
+        });
+
+// Init
         checkDraft();
         loadMovies();
         loadGames();
