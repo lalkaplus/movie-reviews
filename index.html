@@ -857,6 +857,14 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        console.log('Script started, Firebase initialized');
+        // Test if Firebase is working
+        try {
+            const testQuery = query(collection(db, "movies"), orderBy("date", "desc"));
+            console.log('Firebase query created successfully');
+        } catch (e) {
+            console.error('Firebase query failed:', e);
+        }
         const db = getFirestore(app);
 
         let currentTab = 'movies';
@@ -1540,9 +1548,7 @@
             document.getElementById('wheelLoading').classList.add('hidden');
 
             if (errorMsg) {
-                alert('Ошибка: ' + errorMsg + '
-
-Возможно, нужно указать токен API КиноПоиска. Получите его на kinopoisk.dev');
+                alert('Ошибка: ' + errorMsg + '\n\nВозможно, нужно указать токен API КиноПоиска. Получите его на kinopoisk.dev');
                 return;
             }
 
@@ -1604,9 +1610,26 @@
         });
 
 // Init
+        // Global error handler for Firebase initialization issues
+        window.addEventListener('error', (e) => {
+            console.error('Global error:', e.error);
+        });
+
+        // Timeout fallback - if loading takes too long, show error
+        const loadTimeout = setTimeout(() => {
+            const moviesGrid = document.getElementById('moviesGrid');
+            const gamesGrid = document.getElementById('gamesGrid');
+            if (moviesGrid && moviesGrid.innerHTML.includes('loader')) {
+                moviesGrid.innerHTML = `<div class="col-span-full text-center py-20"><div class="text-6xl mb-4">⚠️</div><p class="text-red-400 font-bold mb-2">Не удалось загрузить данные</p><p class="text-gray-400 text-sm max-w-md mx-auto">Проверьте консоль (F12 → Console) для деталей ошибки. Возможно, проблема с Firebase или CORS.</p></div>`;
+            }
+            if (gamesGrid && gamesGrid.innerHTML.includes('loader')) {
+                gamesGrid.innerHTML = `<div class="col-span-full text-center py-20"><div class="text-6xl mb-4">⚠️</div><p class="text-red-400 font-bold mb-2">Не удалось загрузить данные</p><p class="text-gray-400 text-sm max-w-md mx-auto">Проверьте консоль (F12 → Console) для деталей ошибки.</p></div>`;
+            }
+        }, 10000); // 10 seconds timeout
+
         checkDraft();
-        loadMovies();
-        loadGames();
+        loadMovies().then(() => clearTimeout(loadTimeout)).catch(() => clearTimeout(loadTimeout));
+        loadGames().then(() => clearTimeout(loadTimeout)).catch(() => clearTimeout(loadTimeout));
     </script>
 </body>
 </html>
