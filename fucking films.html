@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 Наши рецензии</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .movie-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .movie-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        .modal {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal.active {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .poster-img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #6366f1;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .star-rating { color: #fbbf24; }
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .line-clamp-1 {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- Header -->
+    <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="text-3xl">🎬</span>
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                    Наши рецензии
+                </h1>
+            </div>
+            <button onclick="openAddModal()" class="bg-indigo-600 hover:bg-indigo-700 px-6 py-2.5 rounded-xl font-medium transition flex items-center gap-2">
+                <span>+</span> Добавить фильм
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+                <p class="text-gray-400 text-sm">Всего фильмов</p>
+                <p class="text-3xl font-bold text-indigo-400" id="totalMovies">0</p>
+            </div>
+            <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+                <p class="text-gray-400 text-sm">Средняя оценка</p>
+                <p class="text-3xl font-bold text-purple-400" id="avgRating">-</p>
+            </div>
+            <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+                <p class="text-gray-400 text-sm">Последний просмотр</p>
+                <p class="text-xl font-bold text-pink-400 truncate" id="lastMovie">-</p>
+            </div>
+        </div>
+
+        <!-- Movies Grid -->
+        <div id="moviesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="col-span-full flex justify-center py-20">
+                <div class="loader"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Movie Modal -->
+    <div id="addModal" class="modal fixed inset-0 bg-black/80 backdrop-blur-sm z-50 items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-gray-700">
+            <div class="p-6 border-b border-gray-700 flex justify-between items-center">
+                <h2 class="text-xl font-bold">🎬 Новая рецензия</h2>
+                <button onclick="closeAddModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <form id="addForm" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Название фильма *</label>
+                    <input type="text" id="movieTitle" required class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500" placeholder="Например: Криминальное чтиво">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Ваша оценка</label>
+                    <div class="flex gap-2" id="starInput">
+                        <button type="button" onclick="setRating(1)" class="star-btn text-3xl text-gray-600 hover:text-yellow-400 transition">★</button>
+                        <button type="button" onclick="setRating(2)" class="star-btn text-3xl text-gray-600 hover:text-yellow-400 transition">★</button>
+                        <button type="button" onclick="setRating(3)" class="star-btn text-3xl text-gray-600 hover:text-yellow-400 transition">★</button>
+                        <button type="button" onclick="setRating(4)" class="star-btn text-3xl text-gray-600 hover:text-yellow-400 transition">★</button>
+                        <button type="button" onclick="setRating(5)" class="star-btn text-3xl text-gray-600 hover:text-yellow-400 transition">★</button>
+                    </div>
+                    <input type="hidden" id="movieRating" value="0">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Рецензия *</label>
+                    <textarea id="movieReview" required rows="4" class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 resize-none" placeholder="Напишите ваши впечатления..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Ссылка на постер (URL)</label>
+                    <input type="url" id="moviePosterUrl" class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500" placeholder="https://...">
+                    <p class="text-gray-500 text-xs mt-1">Вставьте ссылку на картинку с Кинопоиска, IMDb или другого сайта</p>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Кто смотрел</label>
+                    <input type="text" id="movieWatcher" class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500" placeholder="Имя">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 py-3 rounded-xl font-medium transition flex items-center justify-center gap-2">
+                    <span id="submitText">Добавить рецензию</span>
+                    <div id="submitLoader" class="loader w-5 h-5 border-2 hidden"></div>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Movie Modal -->
+    <div id="viewModal" class="modal fixed inset-0 bg-black/90 backdrop-blur-sm z-50 items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
+            <div class="relative">
+                <img id="viewPoster" src="" alt="" class="w-full h-64 object-cover">
+                <button onclick="closeViewModal()" class="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center text-xl transition backdrop-blur-sm">&times;</button>
+            </div>
+            <div class="p-6">
+                <div class="flex items-start justify-between mb-4">
+                    <div>
+                        <h2 id="viewTitle" class="text-2xl font-bold mb-1"></h2>
+                        <p class="text-gray-400 text-sm">Посмотрел: <span id="viewWatcher" class="text-indigo-400"></span></p>
+                    </div>
+                    <div id="viewRating" class="star-rating text-2xl"></div>
+                </div>
+                <div class="bg-gray-700/50 rounded-xl p-4 mb-4">
+                    <p id="viewReview" class="text-gray-200 leading-relaxed"></p>
+                </div>
+                <p class="text-gray-500 text-xs" id="viewDate"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyArs2HWc_mLpkJfqhm6aFmkl9_4wSbjqNA",
+            authDomain: "filmp-aced7.firebaseapp.com",
+            projectId: "filmp-aced7",
+            storageBucket: "filmp-aced7.firebasestorage.app",
+            messagingSenderId: "84762572851",
+            appId: "1:84762572851:web:e623ac57ae0e415c308b46"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let currentRating = 0;
+        let movies = [];
+
+        async function loadMovies() {
+            const grid = document.getElementById('moviesGrid');
+            grid.innerHTML = '<div class="col-span-full flex justify-center py-20"><div class="loader"></div></div>';
+            
+            try {
+                const q = query(collection(db, "movies"), orderBy("date", "desc"));
+                const snapshot = await getDocs(q);
+                movies = [];
+                
+                snapshot.forEach(doc => {
+                    movies.push({ id: doc.id, ...doc.data() });
+                });
+
+                updateStats();
+                renderMovies();
+            } catch (error) {
+                grid.innerHTML = `<div class="col-span-full text-center py-20 text-red-400">Ошибка загрузки: ${error.message}</div>`;
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('totalMovies').textContent = movies.length;
+            
+            if (movies.length > 0) {
+                const avg = movies.reduce((sum, m) => sum + (m.rating || 0), 0) / movies.length;
+                document.getElementById('avgRating').textContent = avg.toFixed(1) + ' ★';
+                document.getElementById('lastMovie').textContent = movies[0].title;
+            }
+        }
+
+        function renderMovies() {
+            const grid = document.getElementById('moviesGrid');
+            
+            if (movies.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-20">
+                        <span class="text-6xl">🎬</span>
+                        <p class="text-gray-400 mt-4 text-lg">Пока нет рецензий</p>
+                        <p class="text-gray-500">Будьте первым! Нажмите "Добавить фильм"</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = movies.map(movie => `
+                <div class="movie-card bg-gray-800 rounded-2xl overflow-hidden border border-gray-700" onclick='openViewModal("${movie.id}")'>
+                    <div class="relative">
+                        <img src="${movie.posterUrl || 'https://placehold.co/400x300/2d3748/718096?text=Нет+постера'}" 
+                             alt="${movie.title}" 
+                             class="poster-img"
+                             onerror="this.src='https://placehold.co/400x300/2d3748/718096?text=Нет+постера'">
+                        <div class="absolute top-3 right-3 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-bold text-yellow-400">
+                            ${'★'.repeat(movie.rating || 0)}${'☆'.repeat(5 - (movie.rating || 0))}
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="text-lg font-bold mb-2 line-clamp-1">${movie.title}</h3>
+                        <p class="text-gray-400 text-sm line-clamp-3 mb-3">${movie.review}</p>
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span>👤 ${movie.watcher || 'Аноним'}</span>
+                            <span>${movie.date ? new Date(movie.date).toLocaleDateString('ru-RU') : ''}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.setRating = function(rating) {
+            currentRating = rating;
+            document.getElementById('movieRating').value = rating;
+            const stars = document.querySelectorAll('.star-btn');
+            stars.forEach((star, index) => {
+                star.classList.toggle('text-yellow-400', index < rating);
+                star.classList.toggle('text-gray-600', index >= rating);
+            });
+        };
+
+        window.openAddModal = function() {
+            document.getElementById('addModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closeAddModal = function() {
+            document.getElementById('addModal').classList.remove('active');
+            document.body.style.overflow = '';
+            document.getElementById('addForm').reset();
+            setRating(0);
+        };
+
+        window.openViewModal = function(movieId) {
+            const movie = movies.find(m => m.id === movieId);
+            if (!movie) return;
+
+            document.getElementById('viewPoster').src = movie.posterUrl || 'https://placehold.co/800x400/2d3748/718096?text=Нет+постера';
+            document.getElementById('viewTitle').textContent = movie.title;
+            document.getElementById('viewWatcher').textContent = movie.watcher || 'Аноним';
+            document.getElementById('viewRating').innerHTML = '★'.repeat(movie.rating || 0) + '☆'.repeat(5 - (movie.rating || 0));
+            document.getElementById('viewReview').textContent = movie.review;
+            document.getElementById('viewDate').textContent = movie.date ? 'Добавлено: ' + new Date(movie.date).toLocaleString('ru-RU') : '';
+
+            document.getElementById('viewModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closeViewModal = function() {
+            document.getElementById('viewModal').classList.remove('active');
+            document.body.style.overflow = '';
+        };
+
+        document.getElementById('addForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const submitText = document.getElementById('submitText');
+            const submitLoader = document.getElementById('submitLoader');
+            
+            submitBtn.disabled = true;
+            submitText.textContent = 'Сохраняем...';
+            submitLoader.classList.remove('hidden');
+
+            try {
+                await addDoc(collection(db, "movies"), {
+                    title: document.getElementById('movieTitle').value,
+                    rating: parseInt(document.getElementById('movieRating').value) || 0,
+                    review: document.getElementById('movieReview').value,
+                    watcher: document.getElementById('movieWatcher').value || 'Аноним',
+                    posterUrl: document.getElementById('moviePosterUrl').value || '',
+                    date: new Date().toISOString()
+                });
+
+                closeAddModal();
+                loadMovies();
+            } catch (error) {
+                alert('Ошибка: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitText.textContent = 'Добавить рецензию';
+                submitLoader.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('addModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeAddModal();
+        });
+        document.getElementById('viewModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeViewModal();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeAddModal();
+                closeViewModal();
+            }
+        });
+
+        loadMovies();
+    </script>
+</body>
+</html>
