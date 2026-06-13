@@ -6,29 +6,41 @@
     <title>🎬 Наши рецензии</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <base target="_blank">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
-    <div class="spinning-67"><span class="digit">6</span><span class="digit">7</span></div>
 
+    <!-- Spinning 67 (Easter egg) -->
+    <div class="spinning-67">
+        <span class="digit">6</span><span class="digit">7</span>
+    </div>
+
+    <!-- ==================== HEADER ==================== -->
     <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-40">
         <div class="max-w-6xl mx-auto px-4 py-4">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3">
-                    <span class="text-3xl">🎬</span>
-                    <h1 class="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Наши рецензии</h1>
-                </div>
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-3xl">🎬</span>
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                    Наши рецензии
+                </h1>
             </div>
             <nav class="flex gap-2 flex-wrap items-center">
-                <button class="nav-tab active" onclick="switchTab('movies')">🎬 Фильмы</button>
-                <button class="nav-tab" onclick="switchTab('games')">🎮 Игры</button>
+                <button class="nav-tab active" data-tab="movies">🎬 Фильмы</button>
+                <button class="nav-tab" data-tab="games">🎮 Игры</button>
+                <button onclick="openWheelModal()"
+                        class="ml-auto bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 px-4 py-2 rounded-xl font-medium transition flex items-center gap-2 text-sm"
+                        title="Не знаешь что посмотреть?">
+                    <span class="text-lg">🎡</span> Колесо Фортуны
+                </button>
             </nav>
         </div>
     </header>
 
+    <!-- ==================== MOVIES SECTION ==================== -->
     <section id="moviesSection" class="section active">
         <main class="max-w-6xl mx-auto px-4 py-8">
+
+            <!-- Stats -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
                     <p class="text-gray-400 text-sm">Всего фильмов</p>
@@ -39,7 +51,9 @@
                     <p class="text-xl font-bold text-pink-400 truncate" id="lastMovie">-</p>
                 </div>
             </div>
-            <div class="mb-6">
+
+            <!-- Genre Filter -->
+            <div class="mb-4">
                 <p class="text-gray-400 text-sm mb-3">Фильтр по жанрам:</p>
                 <div class="flex flex-wrap gap-2" id="genreFilters">
                     <button class="filter-btn active" onclick="toggleGenre('all', this)">Все</button>
@@ -56,9 +70,11 @@
                     <button class="filter-btn" onclick="toggleGenre('Рофл', this)">😂 Рофл</button>
                 </div>
             </div>
+
+            <!-- Rating Filter -->
             <div class="mb-6">
                 <p class="text-gray-400 text-sm mb-3">Фильтр по оценке:</p>
-                <div class="flex flex-wrap gap-2 items-center" id="ratingFilters">
+                <div class="flex flex-wrap gap-2" id="ratingFilters">
                     <button class="filter-btn active" onclick="toggleRating('all', this)">Все</button>
                     <button class="filter-btn" onclick="toggleRating(10, this)">10 ★</button>
                     <button class="filter-btn" onclick="toggleRating(9, this)">9</button>
@@ -73,18 +89,29 @@
                     <button class="filter-btn" onclick="toggleRating(0, this)">0</button>
                 </div>
             </div>
-            <button onclick="openAddModal('movie')" class="bg-indigo-600 hover:bg-indigo-700 px-6 py-2.5 rounded-xl font-medium transition flex items-center gap-2 mb-6">
+
+            <button onclick="openAddMovieModal()" class="bg-indigo-600 hover:bg-indigo-700 px-6 py-2.5 rounded-xl font-medium transition flex items-center gap-2 mb-6">
                 <span>+</span> Добавить фильм
             </button>
+
+            <!-- Movies Grid -->
             <div id="moviesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="col-span-full flex justify-center py-20"><div class="loader"></div></div>
+                <div class="col-span-full flex justify-center py-20">
+                    <div class="loader"></div>
+                </div>
             </div>
-            <button id="loadMoreMoviesBtn" class="load-more-btn hidden" onclick="loadMore('movies')">📥 Ещё рецензии</button>
+
+            <button id="loadMoreMoviesBtn" class="load-more-btn hidden" onclick="loadMoreMovies()">
+                📥 Ещё рецензии
+            </button>
         </main>
     </section>
 
+    <!-- ==================== GAMES SECTION ==================== -->
     <section id="gamesSection" class="section">
         <main class="max-w-6xl mx-auto px-4 py-8">
+
+            <!-- Stats -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
                     <p class="text-gray-400 text-sm">Всего игр</p>
@@ -95,7 +122,9 @@
                     <p class="text-xl font-bold text-cyan-400 truncate" id="lastGame">-</p>
                 </div>
             </div>
-            <div class="mb-6">
+
+            <!-- Genre Filter Games -->
+            <div class="mb-4">
                 <p class="text-gray-400 text-sm mb-3">Фильтр по жанрам:</p>
                 <div class="flex flex-wrap gap-2" id="genreFiltersGames">
                     <button class="filter-btn active" onclick="toggleGenreGame('all', this)">Все</button>
@@ -112,9 +141,11 @@
                     <button class="filter-btn" onclick="toggleGenreGame('Рофл', this)">😂 Рофл</button>
                 </div>
             </div>
+
+            <!-- Rating Filter Games -->
             <div class="mb-6">
                 <p class="text-gray-400 text-sm mb-3">Фильтр по оценке:</p>
-                <div class="flex flex-wrap gap-2 items-center" id="ratingFiltersGames">
+                <div class="flex flex-wrap gap-2" id="ratingFiltersGames">
                     <button class="filter-btn active" onclick="toggleRatingGame('all', this)">Все</button>
                     <button class="filter-btn" onclick="toggleRatingGame(10, this)">10 ★</button>
                     <button class="filter-btn" onclick="toggleRatingGame(9, this)">9</button>
@@ -129,27 +160,134 @@
                     <button class="filter-btn" onclick="toggleRatingGame(0, this)">0</button>
                 </div>
             </div>
-            <button onclick="openAddModal('game')" class="bg-emerald-600 hover:bg-emerald-700 px-6 py-2.5 rounded-xl font-medium transition flex items-center gap-2 mb-6">
+
+            <button onclick="openAddGameModal()" class="bg-emerald-600 hover:bg-emerald-700 px-6 py-2.5 rounded-xl font-medium transition flex items-center gap-2 mb-6">
                 <span>+</span> Добавить игру
             </button>
+
+            <!-- Games Grid -->
             <div id="gamesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="col-span-full flex justify-center py-20"><div class="loader"></div></div>
+                <div class="col-span-full flex justify-center py-20">
+                    <div class="loader"></div>
+                </div>
             </div>
-            <button id="loadMoreGamesBtn" class="load-more-btn hidden" onclick="loadMore('games')">📥 Ещё рецензии</button>
+
+            <button id="loadMoreGamesBtn" class="load-more-btn hidden" onclick="loadMoreGames()">
+                📥 Ещё рецензии
+            </button>
         </main>
     </section>
 
-    <!-- Add Movie Modal -->
+    <!-- ==================== WHEEL OF FORTUNE MODAL ==================== -->
+    <div id="wheelModal" class="modal fixed inset-0 bg-black/90 backdrop-blur-sm z-50 items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-2xl max-w-lg w-full border border-gray-700 relative overflow-hidden">
+            <div class="p-6 border-b border-gray-700 flex justify-between items-center">
+                <h2 class="text-xl font-bold">🎡 Что посмотреть?</h2>
+                <button onclick="closeWheelModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <div class="p-6 flex flex-col items-center">
+                <p class="text-gray-400 text-sm mb-4 text-center">Не знаешь что посмотреть? Крути колесо — выпадет случайный фильм с КиноПоиска!</p>
+
+                <!-- Genre filter for wheel -->
+                <div class="mb-4 w-full">
+                    <p class="text-gray-400 text-sm mb-2 text-center">Фильтр по жанру:</p>
+                    <div class="flex flex-wrap gap-2 justify-center" id="wheelGenreFilters">
+                        <button class="filter-btn active" onclick="setWheelGenre('all', this)">Любой</button>
+                        <button class="filter-btn" onclick="setWheelGenre('комедия', this)">Комедия</button>
+                        <button class="filter-btn" onclick="setWheelGenre('боевик', this)">Боевик</button>
+                        <button class="filter-btn" onclick="setWheelGenre('драма', this)">Драма</button>
+                        <button class="filter-btn" onclick="setWheelGenre('ужасы', this)">Ужасы</button>
+                        <button class="filter-btn" onclick="setWheelGenre('фантастика', this)">Фантастика</button>
+                        <button class="filter-btn" onclick="setWheelGenre('триллер', this)">Триллер</button>
+                        <button class="filter-btn" onclick="setWheelGenre('мелодрама', this)">Мелодрама</button>
+                        <button class="filter-btn" onclick="setWheelGenre('приключения', this)">Приключения</button>
+                        <button class="filter-btn" onclick="setWheelGenre('мультфильм', this)">Мультфильм</button>
+                        <button class="filter-btn" onclick="setWheelGenre('детектив', this)">Детектив</button>
+                        <button class="filter-btn" onclick="setWheelGenre('фэнтези', this)">Фэнтези</button>
+                    </div>
+                </div>
+
+                <!-- Canvas -->
+                <div class="relative mb-6">
+                    <!-- Pointer arrow -->
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-10"
+                         style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
+                        <svg width="30" height="40" viewBox="0 0 30 40">
+                            <polygon points="15,40 0,0 30,0" fill="#ef4444"/>
+                        </svg>
+                    </div>
+                    <canvas id="wheelCanvas" width="320" height="320"
+                            class="rounded-full border-4 border-gray-700"></canvas>
+                    <!-- Spin button on top of canvas -->
+                    <button id="spinBtn" onclick="spinWheel()"
+                            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg hover:scale-110 transition border-4 border-gray-800 z-20">
+                        КРУТИ
+                    </button>
+                </div>
+
+                <!-- Error block -->
+                <div id="wheelError" class="hidden w-full mb-3 bg-red-900/40 border border-red-700 rounded-xl px-4 py-3 text-red-300 text-sm"></div>
+
+                <!-- Loading indicator -->
+                <div id="wheelLoading" class="hidden mb-4 flex flex-col items-center">
+                    <div class="loader"></div>
+                    <p class="text-gray-400 text-sm mt-2">Ищем фильм на КиноПоиске...</p>
+                </div>
+
+                <!-- Result -->
+                <div id="wheelResult" class="hidden w-full">
+                    <div class="bg-gray-700/50 rounded-xl p-4">
+                        <div class="flex gap-4">
+                            <img id="wheelResultPoster" src="" alt=""
+                                 class="w-24 h-36 object-cover rounded-lg flex-shrink-0">
+                            <div class="flex-1 min-w-0">
+                                <h3 id="wheelResultTitle" class="text-lg font-bold text-white mb-1 truncate"></h3>
+                                <p id="wheelResultYear" class="text-gray-400 text-sm mb-1"></p>
+                                <div id="wheelResultGenres" class="flex flex-wrap gap-1 mb-2"></div>
+                                <div class="flex items-center gap-3 mb-2">
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-yellow-400">★</span>
+                                        <span id="wheelResultKpRating" class="text-white font-bold"></span>
+                                        <span class="text-gray-500 text-xs">КП</span>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-yellow-400">★</span>
+                                        <span id="wheelResultImdbRating" class="text-white font-bold"></span>
+                                        <span class="text-gray-500 text-xs">IMDb</span>
+                                    </div>
+                                </div>
+                                <p id="wheelResultDesc" class="text-gray-300 text-sm line-clamp-3"></p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex gap-2">
+                            <a id="wheelKpLink" href="#" target="_blank"
+                               class="flex-1 bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm font-medium transition text-center">
+                                Открыть на КиноПоиске
+                            </a>
+                            <button onclick="spinWheel()"
+                                    class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-medium transition">
+                                🔄 Ещё раз
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== ADD MOVIE MODAL ==================== -->
     <div id="addMovieModal" class="modal fixed inset-0 bg-black/80 backdrop-blur-sm z-50 items-center justify-center p-4">
         <div class="bg-gray-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-gray-700">
             <div class="p-6 border-b border-gray-700 flex justify-between items-center">
                 <h2 class="text-xl font-bold">🎬 Новая рецензия на фильм</h2>
-                <button onclick="closeAddModal('movie')" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+                <button onclick="closeAddMovieModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
             </div>
             <form id="addMovieForm" class="p-6 space-y-4">
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Название фильма *</label>
-                    <input type="text" id="movieTitle" required class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500" placeholder="Например: Криминальное чтиво">
+                    <input type="text" id="movieTitle" required
+                           class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
+                           placeholder="Например: Криминальное чтиво">
                 </div>
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Происхождение *</label>
@@ -188,36 +326,43 @@
                     <input type="hidden" id="movieGenres" required>
                 </div>
                 <div>
-                    <label class="block text-sm text-gray-400 mb-2">Оценка (0-10)</label>
+                    <label class="block text-sm text-gray-400 mb-2">Оценка (0–10)</label>
                     <div class="rating-10" id="starInputMovie">
-                        <button type="button" onclick="setRatingMovie(0)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="0">☆</button>
-                        <button type="button" onclick="setRatingMovie(1)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="1">★</button>
-                        <button type="button" onclick="setRatingMovie(2)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="2">★</button>
-                        <button type="button" onclick="setRatingMovie(3)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="3">★</button>
-                        <button type="button" onclick="setRatingMovie(4)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="4">★</button>
-                        <button type="button" onclick="setRatingMovie(5)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="5">★</button>
-                        <button type="button" onclick="setRatingMovie(6)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="6">★</button>
-                        <button type="button" onclick="setRatingMovie(7)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="7">★</button>
-                        <button type="button" onclick="setRatingMovie(8)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="8">★</button>
-                        <button type="button" onclick="setRatingMovie(9)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="9">★</button>
-                        <button type="button" onclick="setRatingMovie(10)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="10">★</button>
+                        <button type="button" onclick="setRatingMovie(0)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="0">☆</button>
+                        <button type="button" onclick="setRatingMovie(1)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="1">★</button>
+                        <button type="button" onclick="setRatingMovie(2)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="2">★</button>
+                        <button type="button" onclick="setRatingMovie(3)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="3">★</button>
+                        <button type="button" onclick="setRatingMovie(4)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="4">★</button>
+                        <button type="button" onclick="setRatingMovie(5)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="5">★</button>
+                        <button type="button" onclick="setRatingMovie(6)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="6">★</button>
+                        <button type="button" onclick="setRatingMovie(7)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="7">★</button>
+                        <button type="button" onclick="setRatingMovie(8)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="8">★</button>
+                        <button type="button" onclick="setRatingMovie(9)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="9">★</button>
+                        <button type="button" onclick="setRatingMovie(10)" class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="10">★</button>
                     </div>
                     <input type="hidden" id="movieRating" value="0">
                     <p class="text-yellow-400 font-bold mt-2" id="movieRatingDisplay">0 / 10</p>
                 </div>
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Рецензия *</label>
-                    <textarea id="movieReview" required rows="4" class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 resize-none" placeholder="Напишите ваши впечатления..."></textarea>
+                    <textarea id="movieReview" required rows="4"
+                              class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 resize-none"
+                              placeholder="Напишите ваши впечатления..."></textarea>
                 </div>
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Ссылка на постер (URL)</label>
-                    <input type="url" id="moviePosterUrl" class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500" placeholder="https://...">
+                    <input type="url" id="moviePosterUrl"
+                           class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
+                           placeholder="https://...">
                 </div>
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Кто смотрел</label>
-                    <input type="text" id="movieWatcher" class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500" placeholder="Имя">
+                    <input type="text" id="movieWatcher"
+                           class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
+                           placeholder="Имя">
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 py-3 rounded-xl font-medium transition flex items-center justify-center gap-2">
+                <button type="submit"
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 py-3 rounded-xl font-medium transition flex items-center justify-center gap-2">
                     <span id="submitMovieText">Добавить рецензию</span>
                     <div id="submitMovieLoader" class="loader w-5 h-5 border-2 hidden"></div>
                 </button>
@@ -225,17 +370,19 @@
         </div>
     </div>
 
-    <!-- Add Game Modal -->
+    <!-- ==================== ADD GAME MODAL ==================== -->
     <div id="addGameModal" class="modal fixed inset-0 bg-black/80 backdrop-blur-sm z-50 items-center justify-center p-4">
         <div class="bg-gray-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-gray-700">
             <div class="p-6 border-b border-gray-700 flex justify-between items-center">
                 <h2 class="text-xl font-bold">🎮 Новая рецензия на игру</h2>
-                <button onclick="closeAddModal('game')" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+                <button onclick="closeAddGameModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
             </div>
             <form id="addGameForm" class="p-6 space-y-4">
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Название игры *</label>
-                    <input type="text" id="gameTitle" required class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500" placeholder="Например: The Witcher 3">
+                    <input type="text" id="gameTitle" required
+                           class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500"
+                           placeholder="Например: The Witcher 3">
                 </div>
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Платформа *</label>
@@ -287,36 +434,43 @@
                     <input type="hidden" id="gameGenres" required>
                 </div>
                 <div>
-                    <label class="block text-sm text-gray-400 mb-2">Оценка (0-10)</label>
+                    <label class="block text-sm text-gray-400 mb-2">Оценка (0–10)</label>
                     <div class="rating-10" id="starInputGame">
-                        <button type="button" onclick="setRatingGame(0)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="0">☆</button>
-                        <button type="button" onclick="setRatingGame(1)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="1">★</button>
-                        <button type="button" onclick="setRatingGame(2)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="2">★</button>
-                        <button type="button" onclick="setRatingGame(3)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="3">★</button>
-                        <button type="button" onclick="setRatingGame(4)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="4">★</button>
-                        <button type="button" onclick="setRatingGame(5)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="5">★</button>
-                        <button type="button" onclick="setRatingGame(6)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="6">★</button>
-                        <button type="button" onclick="setRatingGame(7)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="7">★</button>
-                        <button type="button" onclick="setRatingGame(8)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="8">★</button>
-                        <button type="button" onclick="setRatingGame(9)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="9">★</button>
-                        <button type="button" onclick="setRatingGame(10)" class="star-btn text-2xl text-gray-600 hover:text-yellow-400 transition" data-rating="10">★</button>
+                        <button type="button" onclick="setRatingGame(0)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="0">☆</button>
+                        <button type="button" onclick="setRatingGame(1)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="1">★</button>
+                        <button type="button" onclick="setRatingGame(2)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="2">★</button>
+                        <button type="button" onclick="setRatingGame(3)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="3">★</button>
+                        <button type="button" onclick="setRatingGame(4)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="4">★</button>
+                        <button type="button" onclick="setRatingGame(5)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="5">★</button>
+                        <button type="button" onclick="setRatingGame(6)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="6">★</button>
+                        <button type="button" onclick="setRatingGame(7)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="7">★</button>
+                        <button type="button" onclick="setRatingGame(8)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="8">★</button>
+                        <button type="button" onclick="setRatingGame(9)"  class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="9">★</button>
+                        <button type="button" onclick="setRatingGame(10)" class="star-btn text-gray-600 hover:text-yellow-400 transition" data-rating="10">★</button>
                     </div>
                     <input type="hidden" id="gameRating" value="0">
                     <p class="text-yellow-400 font-bold mt-2" id="gameRatingDisplay">0 / 10</p>
                 </div>
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Рецензия *</label>
-                    <textarea id="gameReview" required rows="4" class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 resize-none" placeholder="Напишите ваши впечатления..."></textarea>
+                    <textarea id="gameReview" required rows="4"
+                              class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 resize-none"
+                              placeholder="Напишите ваши впечатления..."></textarea>
                 </div>
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Ссылка на постер (URL)</label>
-                    <input type="url" id="gamePosterUrl" class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500" placeholder="https://...">
+                    <input type="url" id="gamePosterUrl"
+                           class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500"
+                           placeholder="https://...">
                 </div>
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Кто играл</label>
-                    <input type="text" id="gamePlayer" class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500" placeholder="Имя">
+                    <input type="text" id="gamePlayer"
+                           class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500"
+                           placeholder="Имя">
                 </div>
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 py-3 rounded-xl font-medium transition flex items-center justify-center gap-2">
+                <button type="submit"
+                        class="w-full bg-emerald-600 hover:bg-emerald-700 py-3 rounded-xl font-medium transition flex items-center justify-center gap-2">
                     <span id="submitGameText">Добавить рецензию</span>
                     <div id="submitGameLoader" class="loader w-5 h-5 border-2 hidden"></div>
                 </button>
@@ -324,22 +478,25 @@
         </div>
     </div>
 
-    <!-- View Movie Modal -->
+    <!-- ==================== VIEW MOVIE MODAL ==================== -->
     <div id="viewMovieModal" class="modal fixed inset-0 bg-black/90 backdrop-blur-sm z-50 items-center justify-center p-4">
         <div class="bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
             <div class="relative">
-                <img id="viewMoviePoster" src="" alt="" class="w-full h-64 object-cover">
+                <img id="viewMoviePoster" src="" alt="" class="w-full h-64 object-cover rounded-t-2xl">
                 <div id="viewMovieOrigin" class="origin-badge"></div>
-                <button onclick="closeViewModal('movie')" class="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center text-xl transition backdrop-blur-sm">&times;</button>
+                <button onclick="closeViewMovieModal()"
+                        class="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center text-xl transition backdrop-blur-sm">
+                    &times;
+                </button>
             </div>
             <div class="p-6">
-                <div class="flex items-start justify-between mb-4">
-                    <div>
+                <div class="flex items-start justify-between mb-4 gap-4">
+                    <div class="min-w-0">
                         <h2 id="viewMovieTitle" class="text-2xl font-bold mb-1"></h2>
                         <div id="viewMovieGenres" class="mb-2 flex flex-wrap gap-1"></div>
                         <p class="text-gray-400 text-sm">Посмотрел: <span id="viewMovieWatcher" class="text-indigo-400"></span></p>
                     </div>
-                    <div class="rating-display" id="viewMovieRating"></div>
+                    <div class="rating-display flex-shrink-0" id="viewMovieRating"></div>
                 </div>
                 <div class="bg-gray-700/50 rounded-xl p-4 mb-4">
                     <p id="viewMovieReview" class="text-gray-200 leading-relaxed"></p>
@@ -349,22 +506,25 @@
         </div>
     </div>
 
-    <!-- View Game Modal -->
+    <!-- ==================== VIEW GAME MODAL ==================== -->
     <div id="viewGameModal" class="modal fixed inset-0 bg-black/90 backdrop-blur-sm z-50 items-center justify-center p-4">
         <div class="bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
             <div class="relative">
-                <img id="viewGamePoster" src="" alt="" class="w-full h-64 object-cover">
+                <img id="viewGamePoster" src="" alt="" class="w-full h-64 object-cover rounded-t-2xl">
                 <div id="viewGamePlatforms" class="absolute top-3 left-3 flex flex-wrap gap-1"></div>
-                <button onclick="closeViewModal('game')" class="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center text-xl transition backdrop-blur-sm">&times;</button>
+                <button onclick="closeViewGameModal()"
+                        class="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center text-xl transition backdrop-blur-sm">
+                    &times;
+                </button>
             </div>
             <div class="p-6">
-                <div class="flex items-start justify-between mb-4">
-                    <div>
+                <div class="flex items-start justify-between mb-4 gap-4">
+                    <div class="min-w-0">
                         <h2 id="viewGameTitle" class="text-2xl font-bold mb-1"></h2>
                         <div id="viewGameGenres" class="mb-2 flex flex-wrap gap-1"></div>
                         <p class="text-gray-400 text-sm">Играл: <span id="viewGamePlayer" class="text-emerald-400"></span></p>
                     </div>
-                    <div class="rating-display" id="viewGameRating"></div>
+                    <div class="rating-display flex-shrink-0" id="viewGameRating"></div>
                 </div>
                 <div class="bg-gray-700/50 rounded-xl p-4 mb-4">
                     <p id="viewGameReview" class="text-gray-200 leading-relaxed"></p>
@@ -374,13 +534,14 @@
         </div>
     </div>
 
-    <!-- Draft Bubble -->
-    <div id="draftBubble" class="draft-bubble" onclick="restoreDraft()">
+    <!-- ==================== DRAFT BUBBLE ==================== -->
+    <div id="draftBubble" class="draft-bubble">
         <span>📝</span>
-        <span id="draftLabel">Черновик</span>
-        <span class="draft-badge" id="draftBadge">!</span>
+        <span>Черновик</span>
+        <span class="draft-badge">!</span>
     </div>
 
-    <script type="module" src="main.js"></script>
+    <!-- Entry point — ES module so Firebase imports work -->
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
