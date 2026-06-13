@@ -1,17 +1,22 @@
-// Games module - handles all game-related functionality
-import { db } from './firebase-config.js';
+import { db } from './firebase.js';
 import { collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getGenreClass, getPlatformClass } from './ui.js';
+import { getGenreClass, getPlatformClass, formatDate, formatDateTime } from './utils.js';
+
+const PAGE_SIZE = 9;
 
 let games = [];
 let displayedGames = 0;
-const PAGE_SIZE = 9;
 let selectedGameGenres = ['all'];
 let selectedGameRating = 'all';
+let selectedGameGenresForm = [];
+let currentGameRating = 0;
+
+// ==================== LOAD & RENDER ====================
 
 export async function loadGames() {
     const grid = document.getElementById('gamesGrid');
     grid.innerHTML = '<div class="col-span-full flex justify-center py-20"><div class="loader"></div></div>';
+
     try {
         const q = query(collection(db, "games"), orderBy("date", "desc"));
         const snapshot = await getDocs(q);
@@ -21,13 +26,18 @@ export async function loadGames() {
         displayedGames = 0;
         renderGames();
     } catch (error) {
-        grid.innerHTML = `<div class="col-span-full text-center py-20 text-red-400">Ошибка: ${error.message}</div>`;
+        grid.innerHTML = `<div class="col-span-full text-center py-20 text-red-400">
+            <div class="text-6xl mb-4">⚠️</div>
+            <p class="font-bold mb-2">Ошибка загрузки</p>
+            <p class="text-sm">${error.message}</p>
+        </div>`;
+        throw error;
     }
 }
 
 function updateGameStats() {
     document.getElementById('totalGames').textContent = games.length;
-    if (games.length > 0) document.getElementById('lastGame').textContent = games[0].title;
+    document.getElementById('lastGame').textContent = games.length > 0 ? games[0].title : '-';
 }
 
 function getFilteredGames() {
@@ -45,39 +55,60 @@ function getFilteredGames() {
     return result;
 }
 
+function buildGameCard(game) {
+    const genreTags = (game.genres || []).map(g =>
+        `<span class="genre-tag ${getGenreClass(g)}">${g}</span>`
+    ).join('');
+    const platformTags = (game.platforms || []).map(p =>
+        `<span class="platform-tag ${getPlatformClass(p)}">${p}</span>`
+    ).join('');
+    const fallback = 'https://placehold.co/400x300/2d3748/718096?text=Нет+постера';
+
+    return `
+    <div class="game-card bg-gray-800 rounded-2xl overflow-hidden border border-gray-700"
+         onclick="window.openViewGameModal('${game.id}')">
+        <div class="relative">
+            <img src="${game.posterUrl || fallback}" class="poster-img"
+                 onerror="this.src='${fallback}'">
+            <div class="absolute top-3 left-3 flex flex-wrap gap-1">${platformTags}</div>
+            <div class="absolute top-3 right-3 rating-display">${game.rating ?? 0}/10</div>
+            <div class="absolute bottom-3 left-3 flex flex-wrap gap-1">${genreTags}</div>
+        </div>
+        <div class="p-5">
+            <h3 class="text-lg font-bold mb-2 line-clamp-1">${game.title}</h3>
+            <p class="text-gray-400 text-sm line-clamp-3 mb-3">${game.review}</p>
+            <div class="flex items-center justify-between text-xs text-gray-500">
+                <span>👤 ${game.player || 'Аноним'}</span>
+                <span>${formatDate(game.date)}</span>
+            </div>
+        </div>
+    </div>`;
+}
+
 export function renderGames() {
     const grid = document.getElementById('gamesGrid');
     const filtered = getFilteredGames();
+
     if (filtered.length === 0) {
-        grid.innerHTML = `<div class="col-span-full text-center py-20"><span class="text-6xl">🎮</span><p class="text-gray-400 mt-4">Нет игр</p></div>`;
+        grid.innerHTML = `<div class="col-span-full text-center py-20">
+            <span class="text-6xl">🎮</span>
+            <p class="text-gray-400 mt-4">Нет игр с такими фильтрами</p>
+        </div>`;
         document.getElementById('loadMoreGamesBtn').classList.add('hidden');
         return;
     }
+
     const toShow = filtered.slice(0, displayedGames + PAGE_SIZE);
-    const hasMore = filtered.length > toShow.length;
-    grid.innerHTML = toShow.map(game => {
-        const genreTags = (game.genres || []).map(g => `<span class="genre-tag ${getGenreClass(g)}">${g}</span>`).join('');
-        const platformTags = (game.platforms || []).map(p => `<span class="platform-tag ${getPlatformClass(p)}">${p}</span>`).join('');
-        return `<div class="game-card bg-gray-800 rounded-2xl overflow-hidden border border-gray-700" onclick='window.openViewModal("game", "${game.id}")'>
-            <div class="relative">
-                <img src="${game.posterUrl || 'https://placehold.co/400x300/2d3748/718096?text=Нет+постера'}" class="poster-img" onerror="this.src='https://placehold.co/400x300/2d3748/718096?text=Нет+постера'">
-                <div class="absolute top-3 left-3 flex flex-wrap gap-1">${platformTags}</div>
-                <div class="absolute top-3 right-3 rating-display">${game.rating || 0}/10</div>
-                <div class="absolute bottom-3 left-3 flex flex-wrap gap-1">${genreTags}</div>
-            </div>
-            <div class="p-5">
-                <h3 class="text-lg font-bold mb-2 line-clamp-1">${game.title}</h3>
-                <p class="text-gray-400 text-sm line-clamp-3 mb-3">${game.review}</p>
-                <div class="flex items-center justify-between text-xs text-gray-500">
-                    <span>👤 ${game.player || 'Аноним'}</span>
-                    <span>${game.date ? new Date(game.date).toLocaleDateString('ru-RU') : ''}</span>
-                </div>
-            </div>
-        </div>`;
-    }).join('');
+    grid.innerHTML = toShow.map(buildGameCard).join('');
     displayedGames = toShow.length;
-    document.getElementById('loadMoreGamesBtn').classList.toggle('hidden', !hasMore);
+    document.getElementById('loadMoreGamesBtn').classList.toggle('hidden', filtered.length <= toShow.length);
 }
+
+export function loadMoreGames() {
+    renderGames();
+}
+
+// ==================== FILTERS ====================
 
 export function toggleGenreGame(genre, btn) {
     if (genre === 'all') {
@@ -113,24 +144,114 @@ export function toggleRatingGame(rating, btn) {
     renderGames();
 }
 
-export function loadMoreGames() {
-    renderGames();
+// ==================== ADD MODAL ====================
+
+export function openAddGameModal() {
+    document.getElementById('addGameModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
 }
 
-export function getGames() {
-    return games;
+export function closeAddGameModal() {
+    document.getElementById('addGameModal').classList.remove('active');
+    document.body.style.overflow = '';
 }
 
-export async function submitGame(formData, selectedGameGenresForm, currentRating) {
-    await addDoc(collection(db, "games"), {
-        title: formData.title,
-        platforms: formData.platforms,
-        genres: selectedGameGenresForm,
-        rating: currentRating,
-        review: formData.review,
-        player: formData.player || 'Аноним',
-        posterUrl: formData.posterUrl || '',
-        date: new Date().toISOString()
+export function setRatingGame(rating) {
+    currentGameRating = rating;
+    document.getElementById('gameRating').value = rating;
+    document.getElementById('gameRatingDisplay').textContent = rating + ' / 10';
+    document.querySelectorAll('#starInputGame .star-btn').forEach((btn, i) => {
+        btn.classList.toggle('text-yellow-400', i <= rating);
+        btn.classList.toggle('text-gray-600', i > rating);
     });
-    await loadGames();
+}
+
+export function toggleGenreGameDropdown() {
+    document.getElementById('genreGameDropdown').classList.toggle('active');
+}
+
+export function toggleGenreGameOption(genre) {
+    const cb = document.getElementById('gamegenre-' + genre);
+    cb.checked = !cb.checked;
+    if (cb.checked) {
+        if (!selectedGameGenresForm.includes(genre)) selectedGameGenresForm.push(genre);
+    } else {
+        selectedGameGenresForm = selectedGameGenresForm.filter(g => g !== genre);
+    }
+    document.getElementById('genreGameSelectedText').textContent =
+        selectedGameGenresForm.length ? selectedGameGenresForm.join(', ') : 'Выберите жанры...';
+    document.getElementById('gameGenres').value = selectedGameGenresForm.join(',');
+}
+
+export async function submitGameForm(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    const text = document.getElementById('submitGameText');
+    const loader = document.getElementById('submitGameLoader');
+    btn.disabled = true;
+    text.textContent = 'Сохраняем...';
+    loader.classList.remove('hidden');
+
+    const platforms = Array.from(
+        document.querySelectorAll('input[name="gamePlatform"]:checked')
+    ).map(cb => cb.value);
+
+    try {
+        await addDoc(collection(db, "games"), {
+            title: document.getElementById('gameTitle').value.trim(),
+            platforms,
+            genres: selectedGameGenresForm,
+            rating: parseInt(document.getElementById('gameRating').value) || 0,
+            review: document.getElementById('gameReview').value.trim(),
+            player: document.getElementById('gamePlayer').value.trim() || 'Аноним',
+            posterUrl: document.getElementById('gamePosterUrl').value.trim() || '',
+            date: new Date().toISOString()
+        });
+        e.target.reset();
+        setRatingGame(0);
+        selectedGameGenresForm = [];
+        document.querySelectorAll('#genreGameDropdown input').forEach(cb => cb.checked = false);
+        document.getElementById('genreGameSelectedText').textContent = 'Выберите жанры...';
+        closeAddGameModal();
+        await loadGames();
+    } catch (err) {
+        alert('Ошибка: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        text.textContent = 'Добавить рецензию';
+        loader.classList.add('hidden');
+    }
+}
+
+// ==================== VIEW MODAL ====================
+
+export function openViewGameModal(id) {
+    const game = games.find(g => g.id === id);
+    if (!game) return;
+
+    const genreTags = (game.genres || []).map(g =>
+        `<span class="genre-tag ${getGenreClass(g)}">${g}</span>`
+    ).join('');
+    const platformTags = (game.platforms || []).map(p =>
+        `<span class="platform-tag ${getPlatformClass(p)}">${p}</span>`
+    ).join('');
+    const fallback = 'https://placehold.co/800x400/2d3748/718096?text=Нет+постера';
+
+    document.getElementById('viewGamePoster').src = game.posterUrl || fallback;
+    document.getElementById('viewGamePoster').onerror = function () { this.src = fallback; };
+    document.getElementById('viewGamePlatforms').innerHTML = platformTags;
+    document.getElementById('viewGameTitle').textContent = game.title;
+    document.getElementById('viewGameGenres').innerHTML = genreTags;
+    document.getElementById('viewGamePlayer').textContent = game.player || 'Аноним';
+    document.getElementById('viewGameRating').textContent = (game.rating ?? 0) + '/10';
+    document.getElementById('viewGameReview').textContent = game.review;
+    document.getElementById('viewGameDate').textContent = formatDateTime(game.date);
+
+    document.getElementById('viewGameModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+export function closeViewGameModal() {
+    document.getElementById('viewGameModal').classList.remove('active');
+    document.body.style.overflow = '';
 }
