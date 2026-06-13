@@ -283,7 +283,6 @@ export function checkAndRestoreDraft() {
     if (!saved) return;
     const draft = JSON.parse(saved);
     if (draft.type !== 'movie') return;
-    document.getElementById('draftBubble').classList.add('active');
     return draft;
 }
 
@@ -301,7 +300,7 @@ export function restoreMovieDraft(draft) {
     document.getElementById('genreSelectedText').textContent =
         selectedGenresForm.length ? selectedGenresForm.join(', ') : 'Выберите жанры...';
     document.getElementById('movieGenres').value = selectedGenresForm.join(',');
-    if (draft.rating) setRatingMovie(draft.rating);
+    if (draft.rating !== undefined) setRatingMovie(draft.rating);
     document.getElementById('movieReview').value = draft.review || '';
     document.getElementById('moviePosterUrl').value = draft.posterUrl || '';
     document.getElementById('movieWatcher').value = draft.watcher || '';

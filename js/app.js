@@ -7,7 +7,8 @@ import { loadMovies, renderMovies, loadMoreMovies, toggleGenre, toggleRating,
 import { loadGames, renderGames, loadMoreGames, toggleGenreGame, toggleRatingGame,
          openAddGameModal, closeAddGameModal, setRatingGame, toggleGenreGameDropdown,
          toggleGenreGameOption, submitGameForm,
-         openViewGameModal, closeViewGameModal } from './games.js';
+         openViewGameModal, closeViewGameModal,
+         saveGameDraft, checkAndRestoreGameDraft, restoreGameDraft, clearGameDraft } from './games.js';
 
 import { openWheelModal, closeWheelModal, setWheelGenre, spinWheel } from './wheel.js';
 
@@ -26,11 +27,18 @@ function switchTab(tab) {
 // ==================== DRAFT RESTORE ====================
 
 function handleDraftRestore() {
-    const draft = checkAndRestoreDraft();
+    const movieDraft = checkAndRestoreDraft();
+    const gameDraft = checkAndRestoreGameDraft();
+    const draft = movieDraft || gameDraft;
     if (!draft) return;
-    document.getElementById('draftBubble').classList.add('active');
-    document.getElementById('draftBubble').onclick = () => {
-        if (draft.type === 'movie') restoreMovieDraft(draft);
+    const bubble = document.getElementById('draftBubble');
+    bubble.classList.add('active');
+    bubble.onclick = () => {
+        if (draft.type === 'movie') {
+            restoreMovieDraft(draft);
+        } else if (draft.type === 'game') {
+            restoreGameDraft(draft);
+        }
     };
 }
 
@@ -102,6 +110,14 @@ document.getElementById('addGameForm').addEventListener('submit', submitGameForm
 });
 document.querySelectorAll('input[name="movieOrigin"]').forEach(r =>
     r.addEventListener('change', saveDraft)
+);
+
+// Auto-save draft on game form input
+['gameTitle', 'gameReview', 'gamePosterUrl', 'gamePlayer'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', saveGameDraft);
+});
+document.querySelectorAll('input[name="gamePlatform"]').forEach(cb =>
+    cb.addEventListener('change', saveGameDraft)
 );
 
 // Close genre dropdowns on outside click
