@@ -75,7 +75,7 @@ export function closeViewModal(type) {
 }
 
 // ===== TAB SWITCHING =====
-export function switchTab(tab, moviesSection, gamesSection) {
+export function switchTab(tab) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
     document.getElementById(tab + 'Section').classList.add('active');
@@ -83,26 +83,24 @@ export function switchTab(tab, moviesSection, gamesSection) {
 }
 
 // ===== RATING STARS =====
-export function setRatingMovie(rating, currentMovieRating) {
-    currentMovieRating = rating;
+export function setRatingMovie(rating) {
     document.getElementById('movieRating').value = rating;
     document.getElementById('movieRatingDisplay').textContent = rating + ' / 10';
     document.querySelectorAll('#starInputMovie .star-btn').forEach((btn, i) => {
         btn.classList.toggle('text-yellow-400', i <= rating);
         btn.classList.toggle('text-gray-600', i > rating);
     });
-    return currentMovieRating;
+    return rating;
 }
 
-export function setRatingGame(rating, currentGameRating) {
-    currentGameRating = rating;
+export function setRatingGame(rating) {
     document.getElementById('gameRating').value = rating;
     document.getElementById('gameRatingDisplay').textContent = rating + ' / 10';
     document.querySelectorAll('#starInputGame .star-btn').forEach((btn, i) => {
         btn.classList.toggle('text-yellow-400', i <= rating);
         btn.classList.toggle('text-gray-600', i > rating);
     });
-    return currentGameRating;
+    return rating;
 }
 
 // ===== MULTI-SELECT DROPDOWNS =====
@@ -141,38 +139,113 @@ export function toggleGenreGameOption(genre, selectedGameGenresForm) {
 }
 
 // ===== DRAFT MANAGEMENT =====
-export function checkDraft() {
-    const saved = localStorage.getItem('movieDraft');
-    if (saved) {
-        document.getElementById('draftBubble').classList.add('active');
-        return JSON.parse(saved);
+const MOVIE_DRAFT_KEY = 'movieDraft';
+const GAME_DRAFT_KEY = 'gameDraft';
+
+export function hasMovieDraft() {
+    const saved = localStorage.getItem(MOVIE_DRAFT_KEY);
+    if (!saved) return false;
+    try {
+        const data = JSON.parse(saved);
+        // Check if draft has actual content
+        return !!(data.title || data.review || data.genres?.length > 0 || data.rating > 0);
+    } catch { return false; }
+}
+
+export function hasGameDraft() {
+    const saved = localStorage.getItem(GAME_DRAFT_KEY);
+    if (!saved) return false;
+    try {
+        const data = JSON.parse(saved);
+        return !!(data.title || data.review || data.genres?.length > 0 || data.rating > 0 || data.platforms?.length > 0);
+    } catch { return false; }
+}
+
+export function updateDraftBubble() {
+    const bubble = document.getElementById('draftBubble');
+    const hasMovie = hasMovieDraft();
+    const hasGame = hasGameDraft();
+
+    if (hasMovie || hasGame) {
+        bubble.classList.add('active');
+        const badge = document.getElementById('draftBadge');
+        if (hasMovie && hasGame) badge.textContent = '2';
+        else badge.textContent = '!';
+    } else {
+        bubble.classList.remove('active');
     }
-    return null;
 }
 
-export function saveDraft(type, data) {
-    localStorage.setItem('movieDraft', JSON.stringify({ type, ...data }));
-    document.getElementById('draftBubble').classList.add('active');
+export function saveMovieDraft(data) {
+    localStorage.setItem(MOVIE_DRAFT_KEY, JSON.stringify(data));
+    updateDraftBubble();
 }
 
-export function clearDraft() {
-    localStorage.removeItem('movieDraft');
-    document.getElementById('draftBubble').classList.remove('active');
+export function saveGameDraft(data) {
+    localStorage.setItem(GAME_DRAFT_KEY, JSON.stringify(data));
+    updateDraftBubble();
 }
 
-export function restoreDraft(draftData) {
-    if (!draftData || draftData.type !== 'movie') return;
+export function clearMovieDraft() {
+    localStorage.removeItem(MOVIE_DRAFT_KEY);
+    updateDraftBubble();
+}
+
+export function clearGameDraft() {
+    localStorage.removeItem(GAME_DRAFT_KEY);
+    updateDraftBubble();
+}
+
+export function getMovieDraft() {
+    const saved = localStorage.getItem(MOVIE_DRAFT_KEY);
+    return saved ? JSON.parse(saved) : null;
+}
+
+export function getGameDraft() {
+    const saved = localStorage.getItem(GAME_DRAFT_KEY);
+    return saved ? JSON.parse(saved) : null;
+}
+
+export function restoreMovieDraft() {
+    const draft = getMovieDraft();
+    if (!draft) return [];
+
     openAddModal('movie');
-    document.getElementById('movieTitle').value = draftData.title || '';
-    if (draftData.origin) {
-        const r = document.querySelector(`input[name="movieOrigin"][value="${draftData.origin}"]`);
+    document.getElementById('movieTitle').value = draft.title || '';
+    if (draft.origin) {
+        const r = document.querySelector(`input[name="movieOrigin"][value="${draft.origin}"]`);
         if (r) r.checked = true;
     }
-    if (draftData.rating) {
-        setRatingMovie(draftData.rating, 0);
+    if (draft.rating !== undefined) {
+        setRatingMovie(draft.rating);
     }
-    document.getElementById('movieReview').value = draftData.review || '';
-    document.getElementById('moviePosterUrl').value = draftData.posterUrl || '';
-    document.getElementById('movieWatcher').value = draftData.watcher || '';
-    return draftData.genres || [];
+    document.getElementById('movieReview').value = draft.review || '';
+    document.getElementById('moviePosterUrl').value = draft.posterUrl || '';
+    document.getElementById('movieWatcher').value = draft.watcher || '';
+
+    return draft.genres || [];
+}
+
+export function restoreGameDraft() {
+    const draft = getGameDraft();
+    if (!draft) return [];
+
+    openAddModal('game');
+    document.getElementById('gameTitle').value = draft.title || '';
+
+    // Restore platforms
+    if (draft.platforms) {
+        document.querySelectorAll('input[name="gamePlatform"]').forEach(cb => {
+            cb.checked = draft.platforms.includes(cb.value);
+        });
+    }
+
+    if (draft.rating !== undefined) {
+        setRatingGame(draft.rating);
+    }
+    document.getElementById('gameReview').value = draft.review || '';
+    document.getElementById('gamePosterUrl').value = draft.posterUrl || '';
+    document.getElementById('gamePlayer').value = draft.player || '';
+
+    return draft.genres || [];
 }

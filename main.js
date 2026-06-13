@@ -5,8 +5,10 @@ import { loadGames, renderGames, toggleGenreGame, toggleRatingGame, loadMoreGame
 import { 
     openAddModal, closeAddModal, openViewModal, closeViewModal, switchTab,
     setRatingMovie, setRatingGame, toggleGenreDropdown, toggleGenreGameDropdown,
-    toggleGenreOption, toggleGenreGameOption, checkDraft, saveDraft, clearDraft, restoreDraft,
-    getGenreClass, getPlatformClass
+    toggleGenreOption, toggleGenreGameOption,
+    updateDraftBubble, saveMovieDraft, saveGameDraft, clearMovieDraft, clearGameDraft,
+    getMovieDraft, getGameDraft, restoreMovieDraft, restoreGameDraft,
+    hasMovieDraft, hasGameDraft
 } from './ui.js';
 
 // ===== GLOBAL STATE =====
@@ -15,7 +17,6 @@ let selectedGenresForm = [];
 let selectedGameGenresForm = [];
 let currentMovieRating = 0;
 let currentGameRating = 0;
-let draftData = checkDraft();
 
 // ===== EXPOSE FUNCTIONS TO WINDOW (for onclick handlers) =====
 window.switchTab = (tab) => {
@@ -35,19 +36,35 @@ window.loadMore = (type) => {
 
 window.openAddModal = (type) => {
     openAddModal(type);
+    // If opening movie modal and we have a movie draft, restore it
+    if (type === 'movie' && hasMovieDraft()) {
+        selectedGenresForm = restoreMovieDraft();
+        document.querySelectorAll('#genreDropdown input').forEach(cb => {
+            cb.checked = selectedGenresForm.includes(cb.id.replace('genre-', ''));
+        });
+        document.getElementById('genreSelectedText').textContent = selectedGenresForm.length ? selectedGenresForm.join(', ') : 'Выберите жанры...';
+    }
+    // If opening game modal and we have a game draft, restore it
+    if (type === 'game' && hasGameDraft()) {
+        selectedGameGenresForm = restoreGameDraft();
+        document.querySelectorAll('#genreGameDropdown input').forEach(cb => {
+            cb.checked = selectedGameGenresForm.includes(cb.id.replace('gamegenre-', ''));
+        });
+        document.getElementById('genreGameSelectedText').textContent = selectedGameGenresForm.length ? selectedGameGenresForm.join(', ') : 'Выберите жанры...';
+    }
 };
 
 window.closeAddModal = (type) => {
     closeAddModal(type);
     if (type === 'movie') {
         document.getElementById('addMovieForm').reset();
-        currentMovieRating = setRatingMovie(0, currentMovieRating);
+        currentMovieRating = setRatingMovie(0);
         selectedGenresForm = [];
         document.querySelectorAll('#genreDropdown input').forEach(cb => cb.checked = false);
         document.getElementById('genreSelectedText').textContent = 'Выберите жанры...';
     } else {
         document.getElementById('addGameForm').reset();
-        currentGameRating = setRatingGame(0, currentGameRating);
+        currentGameRating = setRatingGame(0);
         selectedGameGenresForm = [];
         document.querySelectorAll('#genreGameDropdown input').forEach(cb => cb.checked = false);
         document.getElementById('genreGameSelectedText').textContent = 'Выберите жанры...';
@@ -61,12 +78,13 @@ window.openViewModal = (type, id) => {
 window.closeViewModal = (type) => closeViewModal(type);
 
 window.setRatingMovie = (rating) => {
-    currentMovieRating = setRatingMovie(rating, currentMovieRating);
-    saveDraftToStorage();
+    currentMovieRating = setRatingMovie(rating);
+    saveMovieDraftToStorage();
 };
 
 window.setRatingGame = (rating) => {
-    currentGameRating = setRatingGame(rating, currentGameRating);
+    currentGameRating = setRatingGame(rating);
+    saveGameDraftToStorage();
 };
 
 window.toggleGenreDropdown = () => toggleGenreDropdown();
@@ -74,42 +92,89 @@ window.toggleGenreGameDropdown = () => toggleGenreGameDropdown();
 
 window.toggleGenreOption = (genre) => {
     selectedGenresForm = toggleGenreOption(genre, selectedGenresForm);
-    saveDraftToStorage();
+    saveMovieDraftToStorage();
 };
 
 window.toggleGenreGameOption = (genre) => {
     selectedGameGenresForm = toggleGenreGameOption(genre, selectedGameGenresForm);
+    saveGameDraftToStorage();
 };
 
 window.restoreDraft = () => {
-    if (!draftData) return;
-    selectedGenresForm = restoreDraft(draftData);
-    document.querySelectorAll('#genreDropdown input').forEach(cb => {
-        cb.checked = selectedGenresForm.includes(cb.id.replace('genre-', ''));
-    });
+    // Restore based on which draft exists
+    if (hasMovieDraft()) {
+        selectedGenresForm = restoreMovieDraft();
+        document.querySelectorAll('#genreDropdown input').forEach(cb => {
+            cb.checked = selectedGenresForm.includes(cb.id.replace('genre-', ''));
+        });
+    } else if (hasGameDraft()) {
+        selectedGameGenresForm = restoreGameDraft();
+        document.querySelectorAll('#genreGameDropdown input').forEach(cb => {
+            cb.checked = selectedGameGenresForm.includes(cb.id.replace('gamegenre-', ''));
+        });
+    }
 };
 
 // ===== DRAFT HELPERS =====
-function saveDraftToStorage() {
+function saveMovieDraftToStorage() {
     const origin = document.querySelector('input[name="movieOrigin"]:checked')?.value || '';
-    saveDraft('movie', {
-        title: document.getElementById('movieTitle').value,
+    const title = document.getElementById('movieTitle').value.trim();
+    const review = document.getElementById('movieReview').value.trim();
+
+    // Only save if there's actual content
+    if (!title && !review && selectedGenresForm.length === 0 && currentMovieRating === 0 && !origin) {
+        clearMovieDraft();
+        return;
+    }
+
+    saveMovieDraft({
+        title: title,
         origin: origin,
         genres: selectedGenresForm,
         rating: currentMovieRating,
-        review: document.getElementById('movieReview').value,
+        review: review,
         posterUrl: document.getElementById('moviePosterUrl').value,
         watcher: document.getElementById('movieWatcher').value
+    });
+}
+
+function saveGameDraftToStorage() {
+    const platforms = Array.from(document.querySelectorAll('input[name="gamePlatform"]:checked')).map(cb => cb.value);
+    const title = document.getElementById('gameTitle').value.trim();
+    const review = document.getElementById('gameReview').value.trim();
+
+    // Only save if there's actual content
+    if (!title && !review && selectedGameGenresForm.length === 0 && currentGameRating === 0 && platforms.length === 0) {
+        clearGameDraft();
+        return;
+    }
+
+    saveGameDraft({
+        title: title,
+        platforms: platforms,
+        genres: selectedGameGenresForm,
+        rating: currentGameRating,
+        review: review,
+        posterUrl: document.getElementById('gamePosterUrl').value,
+        player: document.getElementById('gamePlayer').value
     });
 }
 
 // ===== EVENT LISTENERS =====
 // Draft auto-save for movie form
 ['movieTitle', 'movieReview', 'moviePosterUrl', 'movieWatcher'].forEach(id => {
-    document.getElementById(id)?.addEventListener('input', saveDraftToStorage);
+    document.getElementById(id)?.addEventListener('input', saveMovieDraftToStorage);
 });
 document.querySelectorAll('input[name="movieOrigin"]').forEach(r => {
-    r.addEventListener('change', saveDraftToStorage);
+    r.addEventListener('change', saveMovieDraftToStorage);
+});
+
+// Draft auto-save for game form
+['gameTitle', 'gameReview', 'gamePosterUrl', 'gamePlayer'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', saveGameDraftToStorage);
+});
+document.querySelectorAll('input[name="gamePlatform"]').forEach(r => {
+    r.addEventListener('change', saveGameDraftToStorage);
 });
 
 // Close dropdowns when clicking outside
@@ -155,9 +220,9 @@ document.getElementById('addMovieForm').addEventListener('submit', async (e) => 
             posterUrl: document.getElementById('moviePosterUrl').value
         }, selectedGenresForm, currentMovieRating);
 
-        clearDraft();
+        clearMovieDraft();
         e.target.reset();
-        currentMovieRating = setRatingMovie(0, currentMovieRating);
+        currentMovieRating = setRatingMovie(0);
         selectedGenresForm = [];
         document.querySelectorAll('#genreDropdown input').forEach(cb => cb.checked = false);
         document.getElementById('genreSelectedText').textContent = 'Выберите жанры...';
@@ -191,8 +256,9 @@ document.getElementById('addGameForm').addEventListener('submit', async (e) => {
             posterUrl: document.getElementById('gamePosterUrl').value
         }, selectedGameGenresForm, currentGameRating);
 
+        clearGameDraft();
         e.target.reset();
-        currentGameRating = setRatingGame(0, currentGameRating);
+        currentGameRating = setRatingGame(0);
         selectedGameGenresForm = [];
         document.querySelectorAll('#genreGameDropdown input').forEach(cb => cb.checked = false);
         document.getElementById('genreGameSelectedText').textContent = 'Выберите жанры...';
@@ -221,6 +287,9 @@ const loadTimeout = setTimeout(() => {
         gamesGrid.innerHTML = `<div class="col-span-full text-center py-20"><div class="text-6xl mb-4">⚠️</div><p class="text-red-400 font-bold mb-2">Не удалось загрузить данные</p><p class="text-gray-400 text-sm max-w-md mx-auto">Проверьте консоль (F12 → Console) для деталей ошибки.</p></div>`;
     }
 }, 10000);
+
+// Check drafts on init
+updateDraftBubble();
 
 // Initial load
 loadMovies().then(() => clearTimeout(loadTimeout)).catch(() => clearTimeout(loadTimeout));
