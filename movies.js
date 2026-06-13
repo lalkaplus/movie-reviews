@@ -12,12 +12,9 @@ let selectedRating = 'all';
 let selectedGenresForm = [];
 let currentMovieRating = 0;
 
-// ==================== LOAD & RENDER ====================
-
 export async function loadMovies() {
     const grid = document.getElementById('moviesGrid');
     grid.innerHTML = '<div class="col-span-full flex justify-center py-20"><div class="loader"></div></div>';
-
     try {
         const q = query(collection(db, "movies"), orderBy("date", "desc"));
         const snapshot = await getDocs(q);
@@ -67,7 +64,6 @@ function buildMovieCard(movie) {
     const originClass = movie.origin === 'Русский' ? 'origin-russian' : 'origin-foreign';
     const originEmoji = movie.origin === 'Русский' ? '🇷🇺' : '🌍';
     const fallback = 'https://placehold.co/400x300/2d3748/718096?text=Нет+постера';
-
     return `
     <div class="movie-card bg-gray-800 rounded-2xl overflow-hidden border border-gray-700"
          onclick="window.openViewMovieModal('${movie.id}')">
@@ -92,7 +88,6 @@ function buildMovieCard(movie) {
 export function renderMovies() {
     const grid = document.getElementById('moviesGrid');
     const filtered = getFilteredMovies();
-
     if (filtered.length === 0) {
         grid.innerHTML = `<div class="col-span-full text-center py-20">
             <span class="text-6xl">🎬</span>
@@ -101,18 +96,13 @@ export function renderMovies() {
         document.getElementById('loadMoreMoviesBtn').classList.add('hidden');
         return;
     }
-
     const toShow = filtered.slice(0, displayedMovies + PAGE_SIZE);
     grid.innerHTML = toShow.map(buildMovieCard).join('');
     displayedMovies = toShow.length;
     document.getElementById('loadMoreMoviesBtn').classList.toggle('hidden', filtered.length <= toShow.length);
 }
 
-export function loadMoreMovies() {
-    renderMovies();
-}
-
-// ==================== FILTERS ====================
+export function loadMoreMovies() { renderMovies(); }
 
 export function toggleGenre(genre, btn) {
     if (genre === 'all') {
@@ -147,8 +137,6 @@ export function toggleRating(rating, btn) {
     displayedMovies = 0;
     renderMovies();
 }
-
-// ==================== ADD MODAL ====================
 
 export function openAddMovieModal() {
     document.getElementById('addMovieModal').classList.add('active');
@@ -195,7 +183,6 @@ export async function submitMovieForm(e) {
     btn.disabled = true;
     text.textContent = 'Сохраняем...';
     loader.classList.remove('hidden');
-
     try {
         await addDoc(collection(db, "movies"), {
             title: document.getElementById('movieTitle').value.trim(),
@@ -224,18 +211,14 @@ export async function submitMovieForm(e) {
     }
 }
 
-// ==================== VIEW MODAL ====================
-
 export function openViewMovieModal(id) {
     const movie = movies.find(m => m.id === id);
     if (!movie) return;
-
     const genreTags = (movie.genres || []).map(g =>
         `<span class="genre-tag ${getGenreClass(g)}">${g}</span>`
     ).join('');
     const originClass = movie.origin === 'Русский' ? 'origin-russian' : 'origin-foreign';
     const fallback = 'https://placehold.co/800x400/2d3748/718096?text=Нет+постера';
-
     document.getElementById('viewMoviePoster').src = movie.posterUrl || fallback;
     document.getElementById('viewMoviePoster').onerror = function () { this.src = fallback; };
     document.getElementById('viewMovieOrigin').className = `origin-badge ${originClass}`;
@@ -247,7 +230,6 @@ export function openViewMovieModal(id) {
     document.getElementById('viewMovieRating').textContent = (movie.rating ?? 0) + '/10';
     document.getElementById('viewMovieReview').textContent = movie.review;
     document.getElementById('viewMovieDate').textContent = formatDateTime(movie.date);
-
     document.getElementById('viewMovieModal').classList.add('active');
     document.body.style.overflow = 'hidden';
 }
@@ -263,12 +245,10 @@ export function saveMovieDraft() {
     const origin = document.querySelector('input[name="movieOrigin"]:checked')?.value || '';
     const title = document.getElementById('movieTitle').value.trim();
     const review = document.getElementById('movieReview').value.trim();
-
     if (!title && !review && selectedGenresForm.length === 0 && currentMovieRating === 0 && !origin) {
         clearMovieDraft();
-        return;
+        return false;
     }
-
     const draft = {
         title: document.getElementById('movieTitle').value,
         origin,
@@ -279,7 +259,7 @@ export function saveMovieDraft() {
         watcher: document.getElementById('movieWatcher').value
     };
     localStorage.setItem(MOVIE_DRAFT_KEY, JSON.stringify(draft));
-    updateDraftBubble();
+    return true;
 }
 
 export function hasMovieDraft() {
@@ -299,7 +279,6 @@ export function getMovieDraft() {
 export function restoreMovieDraft() {
     const draft = getMovieDraft();
     if (!draft) return;
-
     openAddMovieModal();
     document.getElementById('movieTitle').value = draft.title || '';
     if (draft.origin) {
@@ -321,17 +300,4 @@ export function restoreMovieDraft() {
 
 export function clearMovieDraft() {
     localStorage.removeItem(MOVIE_DRAFT_KEY);
-    updateDraftBubble();
-}
-
-function updateDraftBubble() {
-    const bubble = document.getElementById('draftBubble');
-    const hasMovie = hasMovieDraft();
-    const hasGame = window.hasGameDraft ? window.hasGameDraft() : false;
-
-    if (hasMovie || hasGame) {
-        bubble.classList.add('active');
-    } else {
-        bubble.classList.remove('active');
-    }
 }

@@ -52,18 +52,12 @@ function updateDraftBubble() {
 function handleDraftRestore() {
     const hasMovie = hasMovieDraft();
     const hasGame = hasGameDraft();
-
     if (!hasMovie && !hasGame) return;
-
-    // Prioritize movie draft if both exist
-    if (hasMovie) {
-        restoreMovieDraft();
-    } else {
-        restoreGameDraft();
-    }
+    if (hasMovie) restoreMovieDraft();
+    else restoreGameDraft();
 }
 
-// ==================== GLOBAL EXPORTS (called from HTML onclick) ====================
+// ==================== GLOBAL EXPORTS ====================
 
 window.switchTab = switchTab;
 
@@ -97,11 +91,7 @@ window.closeWheelModal = closeWheelModal;
 window.setWheelGenre = setWheelGenre;
 window.spinWheel = spinWheel;
 
-// Draft
-window.hasMovieDraft = hasMovieDraft;
-window.hasGameDraft = hasGameDraft;
-
-// ==================== CLOSE ON BACKDROP ====================
+// ==================== BACKDROP CLOSE ====================
 
 function backdropClose(modalId, closeFn) {
     document.getElementById(modalId)?.addEventListener('click', e => {
@@ -123,28 +113,40 @@ document.addEventListener('keydown', e => {
     }
 });
 
-// ==================== FORM SUBMIT LISTENERS ====================
+// ==================== FORM SUBMITS ====================
 
 document.getElementById('addMovieForm').addEventListener('submit', submitMovieForm);
 document.getElementById('addGameForm').addEventListener('submit', submitGameForm);
 
-// Auto-save draft on movie form input
+// ==================== DRAFT AUTO-SAVE ====================
+
+// Movie form
 ['movieTitle', 'movieReview', 'moviePosterUrl', 'movieWatcher'].forEach(id => {
-    document.getElementById(id)?.addEventListener('input', saveMovieDraft);
+    document.getElementById(id)?.addEventListener('input', () => {
+        saveMovieDraft();
+        updateDraftBubble();
+    });
 });
 document.querySelectorAll('input[name="movieOrigin"]').forEach(r =>
-    r.addEventListener('change', saveMovieDraft)
+    r.addEventListener('change', () => { saveMovieDraft(); updateDraftBubble(); })
 );
 
-// Auto-save draft on game form input
+// Game form
 ['gameTitle', 'gameReview', 'gamePosterUrl', 'gamePlayer'].forEach(id => {
-    document.getElementById(id)?.addEventListener('input', saveGameDraft);
+    document.getElementById(id)?.addEventListener('input', () => {
+        saveGameDraft();
+        updateDraftBubble();
+    });
 });
 document.querySelectorAll('input[name="gamePlatform"]').forEach(r =>
-    r.addEventListener('change', saveGameDraft)
+    r.addEventListener('change', () => { saveGameDraft(); updateDraftBubble(); })
 );
 
-// Close genre dropdowns on outside click
+// Draft bubble click
+document.getElementById('draftBubble').addEventListener('click', handleDraftRestore);
+
+// ==================== DROPDOWN CLOSE ON OUTSIDE CLICK ====================
+
 document.addEventListener('click', e => {
     if (!document.getElementById('genreMultiSelect')?.contains(e.target)) {
         document.getElementById('genreDropdown')?.classList.remove('active');
@@ -154,18 +156,16 @@ document.addEventListener('click', e => {
     }
 });
 
-// Wire nav tab data attributes
+// ==================== NAV TABS ====================
+
 document.querySelectorAll('.nav-tab[data-tab]').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
 
-// Draft bubble click
-document.getElementById('draftBubble').addEventListener('click', handleDraftRestore);
-
 // ==================== INIT ====================
 
 async function init() {
-    // Clear old draft format
+    // Clear old draft keys
     localStorage.removeItem('movieDraft');
     localStorage.removeItem('reviewDraft');
 

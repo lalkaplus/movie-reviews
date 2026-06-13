@@ -12,12 +12,9 @@ let selectedGameRating = 'all';
 let selectedGameGenresForm = [];
 let currentGameRating = 0;
 
-// ==================== LOAD & RENDER ====================
-
 export async function loadGames() {
     const grid = document.getElementById('gamesGrid');
     grid.innerHTML = '<div class="col-span-full flex justify-center py-20"><div class="loader"></div></div>';
-
     try {
         const q = query(collection(db, "games"), orderBy("date", "desc"));
         const snapshot = await getDocs(q);
@@ -64,7 +61,6 @@ function buildGameCard(game) {
         `<span class="platform-tag ${getPlatformClass(p)}">${p}</span>`
     ).join('');
     const fallback = 'https://placehold.co/400x300/2d3748/718096?text=Нет+постера';
-
     return `
     <div class="game-card bg-gray-800 rounded-2xl overflow-hidden border border-gray-700"
          onclick="window.openViewGameModal('${game.id}')">
@@ -89,7 +85,6 @@ function buildGameCard(game) {
 export function renderGames() {
     const grid = document.getElementById('gamesGrid');
     const filtered = getFilteredGames();
-
     if (filtered.length === 0) {
         grid.innerHTML = `<div class="col-span-full text-center py-20">
             <span class="text-6xl">🎮</span>
@@ -98,18 +93,13 @@ export function renderGames() {
         document.getElementById('loadMoreGamesBtn').classList.add('hidden');
         return;
     }
-
     const toShow = filtered.slice(0, displayedGames + PAGE_SIZE);
     grid.innerHTML = toShow.map(buildGameCard).join('');
     displayedGames = toShow.length;
     document.getElementById('loadMoreGamesBtn').classList.toggle('hidden', filtered.length <= toShow.length);
 }
 
-export function loadMoreGames() {
-    renderGames();
-}
-
-// ==================== FILTERS ====================
+export function loadMoreGames() { renderGames(); }
 
 export function toggleGenreGame(genre, btn) {
     if (genre === 'all') {
@@ -144,8 +134,6 @@ export function toggleRatingGame(rating, btn) {
     displayedGames = 0;
     renderGames();
 }
-
-// ==================== ADD MODAL ====================
 
 export function openAddGameModal() {
     document.getElementById('addGameModal').classList.add('active');
@@ -192,11 +180,9 @@ export async function submitGameForm(e) {
     btn.disabled = true;
     text.textContent = 'Сохраняем...';
     loader.classList.remove('hidden');
-
     const platforms = Array.from(
         document.querySelectorAll('input[name="gamePlatform"]:checked')
     ).map(cb => cb.value);
-
     try {
         await addDoc(collection(db, "games"), {
             title: document.getElementById('gameTitle').value.trim(),
@@ -225,12 +211,9 @@ export async function submitGameForm(e) {
     }
 }
 
-// ==================== VIEW MODAL ====================
-
 export function openViewGameModal(id) {
     const game = games.find(g => g.id === id);
     if (!game) return;
-
     const genreTags = (game.genres || []).map(g =>
         `<span class="genre-tag ${getGenreClass(g)}">${g}</span>`
     ).join('');
@@ -238,7 +221,6 @@ export function openViewGameModal(id) {
         `<span class="platform-tag ${getPlatformClass(p)}">${p}</span>`
     ).join('');
     const fallback = 'https://placehold.co/800x400/2d3748/718096?text=Нет+постера';
-
     document.getElementById('viewGamePoster').src = game.posterUrl || fallback;
     document.getElementById('viewGamePoster').onerror = function () { this.src = fallback; };
     document.getElementById('viewGamePlatforms').innerHTML = platformTags;
@@ -248,7 +230,6 @@ export function openViewGameModal(id) {
     document.getElementById('viewGameRating').textContent = (game.rating ?? 0) + '/10';
     document.getElementById('viewGameReview').textContent = game.review;
     document.getElementById('viewGameDate').textContent = formatDateTime(game.date);
-
     document.getElementById('viewGameModal').classList.add('active');
     document.body.style.overflow = 'hidden';
 }
@@ -264,12 +245,10 @@ export function saveGameDraft() {
     const platforms = Array.from(document.querySelectorAll('input[name="gamePlatform"]:checked')).map(cb => cb.value);
     const title = document.getElementById('gameTitle').value.trim();
     const review = document.getElementById('gameReview').value.trim();
-
     if (!title && !review && selectedGameGenresForm.length === 0 && currentGameRating === 0 && platforms.length === 0) {
         clearGameDraft();
-        return;
+        return false;
     }
-
     const draft = {
         title: document.getElementById('gameTitle').value,
         platforms,
@@ -280,7 +259,7 @@ export function saveGameDraft() {
         player: document.getElementById('gamePlayer').value
     };
     localStorage.setItem(GAME_DRAFT_KEY, JSON.stringify(draft));
-    updateDraftBubble();
+    return true;
 }
 
 export function hasGameDraft() {
@@ -300,16 +279,13 @@ export function getGameDraft() {
 export function restoreGameDraft() {
     const draft = getGameDraft();
     if (!draft) return;
-
     openAddGameModal();
     document.getElementById('gameTitle').value = draft.title || '';
-
     if (draft.platforms) {
         document.querySelectorAll('input[name="gamePlatform"]').forEach(cb => {
             cb.checked = draft.platforms.includes(cb.value);
         });
     }
-
     selectedGameGenresForm = [...(draft.genres || [])];
     document.querySelectorAll('#genreGameDropdown input').forEach(cb => {
         cb.checked = selectedGameGenresForm.includes(cb.id.replace('gamegenre-', ''));
@@ -317,7 +293,6 @@ export function restoreGameDraft() {
     document.getElementById('genreGameSelectedText').textContent =
         selectedGameGenresForm.length ? selectedGameGenresForm.join(', ') : 'Выберите жанры...';
     document.getElementById('gameGenres').value = selectedGameGenresForm.join(',');
-
     if (draft.rating) setRatingGame(draft.rating);
     document.getElementById('gameReview').value = draft.review || '';
     document.getElementById('gamePosterUrl').value = draft.posterUrl || '';
@@ -326,17 +301,4 @@ export function restoreGameDraft() {
 
 export function clearGameDraft() {
     localStorage.removeItem(GAME_DRAFT_KEY);
-    updateDraftBubble();
-}
-
-function updateDraftBubble() {
-    const bubble = document.getElementById('draftBubble');
-    const hasMovie = window.hasMovieDraft ? window.hasMovieDraft() : false;
-    const hasGame = hasGameDraft();
-
-    if (hasMovie || hasGame) {
-        bubble.classList.add('active');
-    } else {
-        bubble.classList.remove('active');
-    }
 }
