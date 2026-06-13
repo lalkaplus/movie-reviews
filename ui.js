@@ -139,15 +139,20 @@ export function toggleGenreGameOption(genre, selectedGameGenresForm) {
 }
 
 // ===== DRAFT MANAGEMENT =====
-const MOVIE_DRAFT_KEY = 'movieDraft';
-const GAME_DRAFT_KEY = 'gameDraft';
+const MOVIE_DRAFT_KEY = 'movieDraft_v2';
+const GAME_DRAFT_KEY = 'gameDraft_v2';
+const OLD_DRAFT_KEY = 'movieDraft'; // legacy key to clear
+
+// Clear old draft format on init
+export function migrateDrafts() {
+    localStorage.removeItem(OLD_DRAFT_KEY);
+}
 
 export function hasMovieDraft() {
     const saved = localStorage.getItem(MOVIE_DRAFT_KEY);
     if (!saved) return false;
     try {
         const data = JSON.parse(saved);
-        // Check if draft has actual content
         return !!(data.title || data.review || data.genres?.length > 0 || data.rating > 0);
     } catch { return false; }
 }
@@ -163,14 +168,23 @@ export function hasGameDraft() {
 
 export function updateDraftBubble() {
     const bubble = document.getElementById('draftBubble');
+    const label = document.getElementById('draftLabel');
     const hasMovie = hasMovieDraft();
     const hasGame = hasGameDraft();
 
     if (hasMovie || hasGame) {
         bubble.classList.add('active');
         const badge = document.getElementById('draftBadge');
-        if (hasMovie && hasGame) badge.textContent = '2';
-        else badge.textContent = '!';
+        if (hasMovie && hasGame) {
+            badge.textContent = '2';
+            label.textContent = 'Черновики';
+        } else if (hasMovie) {
+            badge.textContent = '!';
+            label.textContent = 'Фильм';
+        } else {
+            badge.textContent = '!';
+            label.textContent = 'Игра';
+        }
     } else {
         bubble.classList.remove('active');
     }

@@ -8,8 +8,11 @@ import {
     toggleGenreOption, toggleGenreGameOption,
     updateDraftBubble, saveMovieDraft, saveGameDraft, clearMovieDraft, clearGameDraft,
     getMovieDraft, getGameDraft, restoreMovieDraft, restoreGameDraft,
-    hasMovieDraft, hasGameDraft
+    hasMovieDraft, hasGameDraft, migrateDrafts
 } from './ui.js';
+
+// ===== MIGRATE OLD DRAFTS =====
+migrateDrafts();
 
 // ===== GLOBAL STATE =====
 let currentTab = 'movies';
@@ -36,22 +39,6 @@ window.loadMore = (type) => {
 
 window.openAddModal = (type) => {
     openAddModal(type);
-    // If opening movie modal and we have a movie draft, restore it
-    if (type === 'movie' && hasMovieDraft()) {
-        selectedGenresForm = restoreMovieDraft();
-        document.querySelectorAll('#genreDropdown input').forEach(cb => {
-            cb.checked = selectedGenresForm.includes(cb.id.replace('genre-', ''));
-        });
-        document.getElementById('genreSelectedText').textContent = selectedGenresForm.length ? selectedGenresForm.join(', ') : 'Выберите жанры...';
-    }
-    // If opening game modal and we have a game draft, restore it
-    if (type === 'game' && hasGameDraft()) {
-        selectedGameGenresForm = restoreGameDraft();
-        document.querySelectorAll('#genreGameDropdown input').forEach(cb => {
-            cb.checked = selectedGameGenresForm.includes(cb.id.replace('gamegenre-', ''));
-        });
-        document.getElementById('genreGameSelectedText').textContent = selectedGameGenresForm.length ? selectedGameGenresForm.join(', ') : 'Выберите жанры...';
-    }
 };
 
 window.closeAddModal = (type) => {
@@ -101,7 +88,7 @@ window.toggleGenreGameOption = (genre) => {
 };
 
 window.restoreDraft = () => {
-    // Restore based on which draft exists
+    // Restore movie draft if exists, otherwise game draft
     if (hasMovieDraft()) {
         selectedGenresForm = restoreMovieDraft();
         document.querySelectorAll('#genreDropdown input').forEach(cb => {
