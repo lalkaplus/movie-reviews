@@ -27,20 +27,46 @@ function switchTab(tab) {
 // ==================== DRAFT RESTORE ====================
 
 function handleDraftRestore() {
-    const movieDraft = checkAndRestoreDraft();
-    const gameDraft = checkAndRestoreGameDraft();
-    const draft = movieDraft || gameDraft;
-    if (!draft) return;
-    const bubble = document.getElementById('draftBubble');
-    bubble.classList.add('active');
-    bubble.onclick = () => {
-        if (draft.type === 'movie') {
-            restoreMovieDraft(draft);
-        } else if (draft.type === 'game') {
-            restoreGameDraft(draft);
-        }
-    };
+    updateDraftBubble();
 }
+
+function updateDraftBubble() {
+    const saved = localStorage.getItem('reviewDraft');
+    const bubble = document.getElementById('draftBubble');
+    if (!saved) {
+        bubble.classList.remove('active');
+        return;
+    }
+    try {
+        const draft = JSON.parse(saved);
+        // Only show if draft actually has some content (exclude 'type')
+        const hasAny = Object.entries(draft).some(([k, v]) => {
+            if (k === 'type') return false;
+            if (Array.isArray(v)) return v.length > 0;
+            if (typeof v === 'number') return v > 0;
+            return !!v;
+        });
+        if (!hasAny) {
+            bubble.classList.remove('active');
+            return;
+        }
+        bubble.classList.add('active');
+    } catch {
+        bubble.classList.remove('active');
+    }
+}
+
+// Set bubble click handler once — always reads fresh draft from storage
+document.getElementById('draftBubble').addEventListener('click', () => {
+    const saved = localStorage.getItem('reviewDraft');
+    if (!saved) return;
+    const draft = JSON.parse(saved);
+    if (draft.type === 'movie') {
+        restoreMovieDraft(draft);
+    } else if (draft.type === 'game') {
+        restoreGameDraft(draft);
+    }
+});
 
 // ==================== GLOBAL EXPORTS (called from HTML onclick) ====================
 

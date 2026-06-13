@@ -264,15 +264,25 @@ export function closeViewMovieModal() {
 export function saveDraft() {
     if (!document.getElementById('addMovieModal').classList.contains('active')) return;
     const origin = document.querySelector('input[name="movieOrigin"]:checked')?.value || '';
+    const title = document.getElementById('movieTitle').value.trim();
+    const review = document.getElementById('movieReview').value.trim();
+    const hasContent = title || review || selectedGenresForm.length > 0 || currentMovieRating > 0
+        || document.getElementById('moviePosterUrl').value.trim()
+        || document.getElementById('movieWatcher').value.trim()
+        || origin;
+    if (!hasContent) {
+        clearDraft();
+        return;
+    }
     const draft = {
         type: 'movie',
-        title: document.getElementById('movieTitle').value,
+        title,
         origin,
         genres: selectedGenresForm,
         rating: currentMovieRating,
-        review: document.getElementById('movieReview').value,
-        posterUrl: document.getElementById('moviePosterUrl').value,
-        watcher: document.getElementById('movieWatcher').value
+        review,
+        posterUrl: document.getElementById('moviePosterUrl').value.trim(),
+        watcher: document.getElementById('movieWatcher').value.trim()
     };
     localStorage.setItem('reviewDraft', JSON.stringify(draft));
     document.getElementById('draftBubble').classList.add('active');

@@ -207,6 +207,7 @@ export async function submitGameForm(e) {
             posterUrl: document.getElementById('gamePosterUrl').value.trim() || '',
             date: new Date().toISOString()
         });
+        clearGameDraft();
         e.target.reset();
         setRatingGame(0);
         selectedGameGenresForm = [];
@@ -263,15 +264,25 @@ export function saveGameDraft() {
     const platforms = Array.from(
         document.querySelectorAll('input[name="gamePlatform"]:checked')
     ).map(cb => cb.value);
+    const title = document.getElementById('gameTitle').value.trim();
+    const review = document.getElementById('gameReview').value.trim();
+    const hasContent = title || review || selectedGameGenresForm.length > 0 || currentGameRating > 0
+        || document.getElementById('gamePosterUrl').value.trim()
+        || document.getElementById('gamePlayer').value.trim()
+        || platforms.length > 0;
+    if (!hasContent) {
+        clearGameDraft();
+        return;
+    }
     const draft = {
         type: 'game',
-        title: document.getElementById('gameTitle').value,
+        title,
         platforms,
         genres: selectedGameGenresForm,
         rating: currentGameRating,
-        review: document.getElementById('gameReview').value,
-        posterUrl: document.getElementById('gamePosterUrl').value,
-        player: document.getElementById('gamePlayer').value
+        review,
+        posterUrl: document.getElementById('gamePosterUrl').value.trim(),
+        player: document.getElementById('gamePlayer').value.trim()
     };
     localStorage.setItem('reviewDraft', JSON.stringify(draft));
     document.getElementById('draftBubble').classList.add('active');
