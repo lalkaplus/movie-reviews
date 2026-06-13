@@ -2,12 +2,13 @@ import { loadMovies, renderMovies, loadMoreMovies, toggleGenre, toggleRating,
          openAddMovieModal, closeAddMovieModal, setRatingMovie, toggleGenreDropdown,
          toggleGenreOption, submitMovieForm,
          openViewMovieModal, closeViewMovieModal,
-         saveDraft, checkAndRestoreDraft, restoreMovieDraft, clearDraft } from './movies.js';
+         saveMovieDraft, hasMovieDraft, restoreMovieDraft, clearMovieDraft } from './movies.js';
 
 import { loadGames, renderGames, loadMoreGames, toggleGenreGame, toggleRatingGame,
          openAddGameModal, closeAddGameModal, setRatingGame, toggleGenreGameDropdown,
          toggleGenreGameOption, submitGameForm,
-         openViewGameModal, closeViewGameModal } from './games.js';
+         openViewGameModal, closeViewGameModal,
+         saveGameDraft, hasGameDraft, restoreGameDraft, clearGameDraft } from './games.js';
 
 import { openWheelModal, closeWheelModal, setWheelGenre, spinWheel } from './wheel.js';
 
@@ -17,21 +18,49 @@ function switchTab(tab) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
     document.getElementById(tab + 'Section').classList.add('active');
-    // Mark correct nav button active
     document.querySelectorAll('.nav-tab').forEach(btn => {
         if (btn.dataset.tab === tab) btn.classList.add('active');
     });
 }
 
-// ==================== DRAFT RESTORE ====================
+// ==================== DRAFT BUBBLE ====================
+
+function updateDraftBubble() {
+    const bubble = document.getElementById('draftBubble');
+    const label = document.getElementById('draftLabel');
+    const badge = document.getElementById('draftBadge');
+    const hasMovie = hasMovieDraft();
+    const hasGame = hasGameDraft();
+
+    if (hasMovie || hasGame) {
+        bubble.classList.add('active');
+        if (hasMovie && hasGame) {
+            label.textContent = 'Черновики';
+            badge.textContent = '2';
+        } else if (hasMovie) {
+            label.textContent = 'Фильм';
+            badge.textContent = '!';
+        } else {
+            label.textContent = 'Игра';
+            badge.textContent = '!';
+        }
+    } else {
+        bubble.classList.remove('active');
+    }
+}
 
 function handleDraftRestore() {
-    const draft = checkAndRestoreDraft();
-    if (!draft) return;
-    document.getElementById('draftBubble').classList.add('active');
-    document.getElementById('draftBubble').onclick = () => {
-        if (draft.type === 'movie') restoreMovieDraft(draft);
-    };
+    const hasMovie = hasMovieDraft();
+    const hasGame = hasGameDraft();
+
+    if (!hasMovie && !hasGame) return;
+
+    // Prioritize movie draft if both exist
+    if (hasMovie) {
+        restoreMovieDraft();
+    } else {
+        restoreGameDraft();
+    }
 }
 
 // ==================== GLOBAL EXPORTS (called from HTML onclick) ====================
@@ -68,6 +97,9 @@ window.closeWheelModal = closeWheelModal;
 window.setWheelGenre = setWheelGenre;
 window.spinWheel = spinWheel;
 
+// Draft
+window.hasMovieDraft = hasMovieDraft;
+window.hasGameDraft = hasGameDraft;
 
 // ==================== CLOSE ON BACKDROP ====================
 
@@ -98,10 +130,18 @@ document.getElementById('addGameForm').addEventListener('submit', submitGameForm
 
 // Auto-save draft on movie form input
 ['movieTitle', 'movieReview', 'moviePosterUrl', 'movieWatcher'].forEach(id => {
-    document.getElementById(id)?.addEventListener('input', saveDraft);
+    document.getElementById(id)?.addEventListener('input', saveMovieDraft);
 });
 document.querySelectorAll('input[name="movieOrigin"]').forEach(r =>
-    r.addEventListener('change', saveDraft)
+    r.addEventListener('change', saveMovieDraft)
+);
+
+// Auto-save draft on game form input
+['gameTitle', 'gameReview', 'gamePosterUrl', 'gamePlayer'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', saveGameDraft);
+});
+document.querySelectorAll('input[name="gamePlatform"]').forEach(r =>
+    r.addEventListener('change', saveGameDraft)
 );
 
 // Close genre dropdowns on outside click
@@ -119,12 +159,18 @@ document.querySelectorAll('.nav-tab[data-tab]').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
 
+// Draft bubble click
+document.getElementById('draftBubble').addEventListener('click', handleDraftRestore);
+
 // ==================== INIT ====================
 
 async function init() {
-    handleDraftRestore();
+    // Clear old draft format
+    localStorage.removeItem('movieDraft');
+    localStorage.removeItem('reviewDraft');
 
-    // Load both in parallel with a timeout fallback
+    updateDraftBubble();
+
     const TIMEOUT = 10_000;
     const timeout = id => setTimeout(() => {
         const grid = document.getElementById(id);

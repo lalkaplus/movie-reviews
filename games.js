@@ -3,6 +3,7 @@ import { collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic
 import { getGenreClass, getPlatformClass, formatDate, formatDateTime } from './utils.js';
 
 const PAGE_SIZE = 9;
+const GAME_DRAFT_KEY = 'gameDraft_v2';
 
 let games = [];
 let displayedGames = 0;
@@ -207,6 +208,7 @@ export async function submitGameForm(e) {
             posterUrl: document.getElementById('gamePosterUrl').value.trim() || '',
             date: new Date().toISOString()
         });
+        clearGameDraft();
         e.target.reset();
         setRatingGame(0);
         selectedGameGenresForm = [];
@@ -254,4 +256,87 @@ export function openViewGameModal(id) {
 export function closeViewGameModal() {
     document.getElementById('viewGameModal').classList.remove('active');
     document.body.style.overflow = '';
+}
+
+// ==================== DRAFT ====================
+
+export function saveGameDraft() {
+    const platforms = Array.from(document.querySelectorAll('input[name="gamePlatform"]:checked')).map(cb => cb.value);
+    const title = document.getElementById('gameTitle').value.trim();
+    const review = document.getElementById('gameReview').value.trim();
+
+    if (!title && !review && selectedGameGenresForm.length === 0 && currentGameRating === 0 && platforms.length === 0) {
+        clearGameDraft();
+        return;
+    }
+
+    const draft = {
+        title: document.getElementById('gameTitle').value,
+        platforms,
+        genres: selectedGameGenresForm,
+        rating: currentGameRating,
+        review: document.getElementById('gameReview').value,
+        posterUrl: document.getElementById('gamePosterUrl').value,
+        player: document.getElementById('gamePlayer').value
+    };
+    localStorage.setItem(GAME_DRAFT_KEY, JSON.stringify(draft));
+    updateDraftBubble();
+}
+
+export function hasGameDraft() {
+    const saved = localStorage.getItem(GAME_DRAFT_KEY);
+    if (!saved) return false;
+    try {
+        const data = JSON.parse(saved);
+        return !!(data.title?.trim() || data.review?.trim() || data.genres?.length > 0 || data.rating > 0 || data.platforms?.length > 0);
+    } catch { return false; }
+}
+
+export function getGameDraft() {
+    const saved = localStorage.getItem(GAME_DRAFT_KEY);
+    return saved ? JSON.parse(saved) : null;
+}
+
+export function restoreGameDraft() {
+    const draft = getGameDraft();
+    if (!draft) return;
+
+    openAddGameModal();
+    document.getElementById('gameTitle').value = draft.title || '';
+
+    if (draft.platforms) {
+        document.querySelectorAll('input[name="gamePlatform"]').forEach(cb => {
+            cb.checked = draft.platforms.includes(cb.value);
+        });
+    }
+
+    selectedGameGenresForm = [...(draft.genres || [])];
+    document.querySelectorAll('#genreGameDropdown input').forEach(cb => {
+        cb.checked = selectedGameGenresForm.includes(cb.id.replace('gamegenre-', ''));
+    });
+    document.getElementById('genreGameSelectedText').textContent =
+        selectedGameGenresForm.length ? selectedGameGenresForm.join(', ') : 'Выберите жанры...';
+    document.getElementById('gameGenres').value = selectedGameGenresForm.join(',');
+
+    if (draft.rating) setRatingGame(draft.rating);
+    document.getElementById('gameReview').value = draft.review || '';
+    document.getElementById('gamePosterUrl').value = draft.posterUrl || '';
+    document.getElementById('gamePlayer').value = draft.player || '';
+}
+
+export function clearGameDraft() {
+    localStorage.removeItem(GAME_DRAFT_KEY);
+    updateDraftBubble();
+}
+
+function updateDraftBubble() {
+    const bubble = document.getElementById('draftBubble');
+    const hasMovie = window.hasMovieDraft ? window.hasMovieDraft() : false;
+    const hasGame = hasGameDraft();
+
+    if (hasMovie || hasGame) {
+        bubble.classList.add('active');
+    } else {
+        bubble.classList.remove('active');
+    }
 }

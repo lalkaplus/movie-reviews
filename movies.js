@@ -3,6 +3,7 @@ import { collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic
 import { getGenreClass, formatDate, formatDateTime } from './utils.js';
 
 const PAGE_SIZE = 9;
+const MOVIE_DRAFT_KEY = 'movieDraft_v2';
 
 let movies = [];
 let displayedMovies = 0;
@@ -23,7 +24,6 @@ export async function loadMovies() {
         movies = [];
         snapshot.forEach(doc => {
             const data = doc.data();
-            // backward compat: single genre → array
             if (data.genre && !data.genres) data.genres = [data.genre];
             movies.push({ id: doc.id, ...data });
         });
@@ -168,7 +168,6 @@ export function setRatingMovie(rating) {
         btn.classList.toggle('text-yellow-400', i <= rating);
         btn.classList.toggle('text-gray-600', i > rating);
     });
-    saveDraft();
 }
 
 export function toggleGenreDropdown() {
@@ -186,7 +185,6 @@ export function toggleGenreOption(genre) {
     document.getElementById('genreSelectedText').textContent =
         selectedGenresForm.length ? selectedGenresForm.join(', ') : 'Выберите жанры...';
     document.getElementById('movieGenres').value = selectedGenresForm.join(',');
-    saveDraft();
 }
 
 export async function submitMovieForm(e) {
@@ -209,7 +207,7 @@ export async function submitMovieForm(e) {
             posterUrl: document.getElementById('moviePosterUrl').value.trim() || '',
             date: new Date().toISOString()
         });
-        clearDraft();
+        clearMovieDraft();
         e.target.reset();
         setRatingMovie(0);
         selectedGenresForm = [];
@@ -261,11 +259,17 @@ export function closeViewMovieModal() {
 
 // ==================== DRAFT ====================
 
-export function saveDraft() {
-    if (!document.getElementById('addMovieModal').classList.contains('active')) return;
+export function saveMovieDraft() {
     const origin = document.querySelector('input[name="movieOrigin"]:checked')?.value || '';
+    const title = document.getElementById('movieTitle').value.trim();
+    const review = document.getElementById('movieReview').value.trim();
+
+    if (!title && !review && selectedGenresForm.length === 0 && currentMovieRating === 0 && !origin) {
+        clearMovieDraft();
+        return;
+    }
+
     const draft = {
-        type: 'movie',
         title: document.getElementById('movieTitle').value,
         origin,
         genres: selectedGenresForm,
@@ -274,20 +278,28 @@ export function saveDraft() {
         posterUrl: document.getElementById('moviePosterUrl').value,
         watcher: document.getElementById('movieWatcher').value
     };
-    localStorage.setItem('reviewDraft', JSON.stringify(draft));
-    document.getElementById('draftBubble').classList.add('active');
+    localStorage.setItem(MOVIE_DRAFT_KEY, JSON.stringify(draft));
+    updateDraftBubble();
 }
 
-export function checkAndRestoreDraft() {
-    const saved = localStorage.getItem('reviewDraft');
-    if (!saved) return;
-    const draft = JSON.parse(saved);
-    if (draft.type !== 'movie') return;
-    document.getElementById('draftBubble').classList.add('active');
-    return draft;
+export function hasMovieDraft() {
+    const saved = localStorage.getItem(MOVIE_DRAFT_KEY);
+    if (!saved) return false;
+    try {
+        const data = JSON.parse(saved);
+        return !!(data.title?.trim() || data.review?.trim() || data.genres?.length > 0 || data.rating > 0 || data.origin);
+    } catch { return false; }
 }
 
-export function restoreMovieDraft(draft) {
+export function getMovieDraft() {
+    const saved = localStorage.getItem(MOVIE_DRAFT_KEY);
+    return saved ? JSON.parse(saved) : null;
+}
+
+export function restoreMovieDraft() {
+    const draft = getMovieDraft();
+    if (!draft) return;
+
     openAddMovieModal();
     document.getElementById('movieTitle').value = draft.title || '';
     if (draft.origin) {
@@ -307,7 +319,19 @@ export function restoreMovieDraft(draft) {
     document.getElementById('movieWatcher').value = draft.watcher || '';
 }
 
-export function clearDraft() {
-    localStorage.removeItem('reviewDraft');
-    document.getElementById('draftBubble').classList.remove('active');
+export function clearMovieDraft() {
+    localStorage.removeItem(MOVIE_DRAFT_KEY);
+    updateDraftBubble();
+}
+
+function updateDraftBubble() {
+    const bubble = document.getElementById('draftBubble');
+    const hasMovie = hasMovieDraft();
+    const hasGame = window.hasGameDraft ? window.hasGameDraft() : false;
+
+    if (hasMovie || hasGame) {
+        bubble.classList.add('active');
+    } else {
+        bubble.classList.remove('active');
+    }
 }
